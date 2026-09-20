@@ -66,9 +66,11 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
-		<key>UIBackgroundModes</key>
-		<array>
+	<key>UIBackgroundModes</key>
+	<array>
 		<string>audio</string>
-		</array>
+	</array>
+	<key>WKAllowsInlineMediaPlayback</key>
+	<true/>
 </dict>
 </plist>

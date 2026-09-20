@@ -6,6 +6,8 @@
   <title>MusicSpace Pro</title>
   
   <script src="capacitor.js"></script>
+  <!-- YouTube 公式 IFrame API -->
+  <script src="https://www.youtube.com/iframe_api"></script>
 
   <style>
     :root {
@@ -47,7 +49,7 @@
     .content-section {
       flex: 1;
       overflow-y: auto;
-      padding: 16px 16px 220px 16px;
+      padding: 16px 16px 240px 16px;
     }
 
     .search-box {
@@ -130,8 +132,12 @@
       z-index: 100;
     }
 
-    audio {
+    #yt-player-container {
       width: 100%;
+      height: 120px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #000;
     }
 
     #debug-log {
@@ -141,7 +147,7 @@
       font-size: 11px;
       padding: 6px;
       border-radius: 6px;
-      max-height: 45px;
+      max-height: 40px;
       overflow-y: auto;
       white-space: pre-wrap;
       word-break: break-all;
@@ -163,29 +169,24 @@
   <div class="player-bar">
     <div id="player-title" class="track-title">曲を選択してください</div>
     
-    <!-- 音声プレイヤー -->
-    <audio id="audio-player" controls style="width: 100%;"></audio>
+    <!-- YouTube 公式プレイヤー本体 -->
+    <div id="yt-player-container">
+      <div id="yt-player"></div>
+    </div>
 
-    <div id="debug-log">ログ: Cobaltエンジン準備完了</div>
+    <div id="debug-log">ログ: 公式プレイヤー初期化待ち</div>
   </div>
 
   <script>
-    const audioPlayer = document.getElementById('audio-player');
+    let ytPlayer = null;
+    let isYtReady = false;
 
-    // 検索用バックアップエンドポイント
+    // 軽量な検索専用サーバー群（ID特定のみに使用）
     const SEARCH_SERVERS = [
       'https://inv.tux.pizza',
       'https://invidious.nerdvpn.de',
       'https://yewtu.be'
     ];
-
-    // Cobalt 音声抽出APIエンドポイント群
-    const COBALT_SERVERS = [
-      'https://api.cobalt.tools',
-      'https://cobalt-api.kwiatek.xyz'
-    ];
-
-    let fallbackPreviewUrl = '';
 
     function log(msg) {
       const logDiv = document.getElementById('debug-log');
@@ -193,7 +194,30 @@
       console.log(msg);
     }
 
-    // 検索処理 (iTunes API)
+    // YouTube 公式 IFrame API 初期化処理
+    function onYouTubeIframeAPIReady() {
+      log('YouTube公式API準備完了');
+      ytPlayer = new YT.Player('yt-player', {
+        height: '100%',
+        width: '100%',
+        playerVars: {
+          'playsinline': 1,
+          'autoplay': 1,
+          'controls': 1
+        },
+        events: {
+          'onReady': () => {
+            isYtReady = true;
+            log('プレイヤー準備完了');
+          },
+          'onError': (e) => {
+            log(`YouTubeプレイヤーエラー: Code ${e.data}`);
+          }
+        }
+      });
+    }
+
+    // iTunes API による超高速楽曲検索
     async function searchMusic() {
       const query = document.getElementById('search-input').value;
       if (!query) return;
@@ -231,7 +255,7 @@
             </div>
           `;
 
-          trackItem.onclick = () => playFullTrack(item.trackName, item.artistName, item.previewUrl);
+          trackItem.onclick = () => playFullTrack(item.trackName, item.artistName);
           resultsDiv.appendChild(trackItem);
         });
 
@@ -241,20 +265,14 @@
       }
     }
 
-    // Cobalt APIを使用したフル音源再生
-    async function playFullTrack(title, artist, previewUrl) {
+    // フル動画・音声の再生処理
+    async function playFullTrack(title, artist) {
       document.getElementById('player-title').textContent = `${title} - ${artist}`;
-      log(`フル音源検索: "${title} ${artist}"`);
-      fallbackPreviewUrl = previewUrl;
-
-      // iOSの音声ロック解除
-      audioPlayer.pause();
-      audioPlayer.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
-      audioPlayer.play().catch(() => {});
+      log(`VideoID特定中: "${title} ${artist}"`);
 
       let videoId = null;
 
-      // 1. YouTube VideoID の取得
+      // YouTube VideoID の特定（動画検索のみ実施）
       for (const server of SEARCH_SERVERS) {
         try {
           const searchQuery = `${title} ${artist}`;
@@ -263,74 +281,27 @@
             const videos = await res.json();
             if (Array.isArray(videos) && videos.length > 0 && videos[0].videoId) {
               videoId = videos[0].videoId;
-              log(`VideoID特定: ${videoId}`);
+              log(`VideoID特定成功: ${videoId}`);
               break;
             }
           }
         } catch (e) {
-          // 次のサーバーへ
+          // 次の検索サーバーへ
         }
       }
 
       if (!videoId) {
-        log('YouTube ID特定失敗 -> 30秒試聴再生へ');
-        playFallback();
+        log('YouTube IDの取得に失敗しました');
         return;
       }
 
-      // 2. Cobalt APIでフル音源URLを生成
-      const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
-      let audioStreamUrl = null;
-
-      for (const cobaltServer of COBALT_SERVERS) {
-        try {
-          log(`Cobalt変換要求 [${cobaltServer}]...`);
-          const response = await fetch(cobaltServer, {
-            method: 'POST',
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              url: youtubeUrl,
-              downloadMode: 'audio',
-              audioFormat: 'm4a'
-            })
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            if (data.url) {
-              audioStreamUrl = data.url;
-              log('Cobalt音源抽出に成功！');
-              break;
-            }
-          }
-        } catch (err) {
-          log(`Cobalt接続エラー: ${err.message}`);
-        }
-      }
-
-      // 3. 再生処理
-      if (audioStreamUrl) {
-        audioPlayer.src = audioStreamUrl;
-        audioPlayer.play().then(() => {
-          log('フル音源の再生に成功しました！');
-        }).catch(err => {
-          log(`再生失敗: ${err.message} -> 予備音源へ`);
-          playFallback();
-        });
+      // 公式プレイヤーで読み込み＆再生
+      if (ytPlayer && isYtReady) {
+        log('YouTube公式プレイヤーでフル再生開始');
+        ytPlayer.loadVideoById(videoId);
       } else {
-        log('全Cobaltサーバー失敗 -> 30秒試聴再生へ');
-        playFallback();
+        log('プレイヤーがまだ初期化されていません');
       }
-    }
-
-    function playFallback() {
-      if (!fallbackPreviewUrl) return;
-      log('バックアップ音源（30秒）で再生中');
-      audioPlayer.src = fallbackPreviewUrl;
-      audioPlayer.play().catch(e => log(`プレビュー再生エラー: ${e.message}`));
     }
   </script>
 </body>

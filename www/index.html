@@ -3,12 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="referrer" content="no-referrer-when-downgrade">
   <title>MusicSpace Pro</title>
   
   <script src="capacitor.js"></script>
 
-  <!-- Brave方式: バックグラウンド移行時の自動一時停止を防止 -->
+  <!-- バックグラウンド停止防止スクリプト -->
   <script>
     (function() {
       Object.defineProperty(document, 'visibilityState', { get: function() { return 'visible'; }, configurable: true });
@@ -139,19 +138,17 @@
       background: rgba(26, 26, 36, 0.98);
       backdrop-filter: blur(20px);
       border-top: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 12px 16px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 12px;
       z-index: 100;
     }
 
-    #player-container {
+    audio {
       width: 100%;
-      height: 140px;
-      border-radius: 10px;
-      overflow: hidden;
-      background: #000;
+      height: 40px;
+      outline: none;
     }
 
     #debug-log {
@@ -183,13 +180,10 @@
   <div class="player-bar">
     <div id="player-title" class="track-title">曲を選択してください</div>
     
-    <div id="player-container">
-      <div style="color: #666; display: flex; align-items: center; justify-content: center; height: 100%; font-size: 13px;">
-        曲を選択するとプレイヤーが起動します
-      </div>
-    </div>
+    <!-- 音声再生用の標準HTML5プレイヤー -->
+    <audio id="audio-player" controls playsinline></audio>
 
-    <div id="debug-log">ログ: エラー153フィルター適用済み</div>
+    <div id="debug-log">ログ: ytmp3.gl 連携モード起動完了</div>
   </div>
 
   <script>
@@ -201,36 +195,47 @@
       console.log(msg);
     }
 
-    // 埋め込み再生許可（videoEmbeddable=true）の動画のみを厳選検索
+    // HTTPリクエストラッパー（CapacitorNative通信 / fetch自動切替）
+    async function httpPost(url, headers, bodyData) {
+      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorHttp) {
+        const res = await window.Capacitor.Plugins.CapacitorHttp.post({
+          url: url,
+          headers: headers,
+          data: bodyData
+        });
+        return res.data;
+      } else {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: headers,
+          body: bodyData
+        });
+        return await res.json();
+      }
+    }
+
+    // YouTube Data API を使用した検索
     async function searchMusic() {
       const query = document.getElementById('search-input').value;
       if (!query) return;
 
       const resultsDiv = document.getElementById('search-results');
-      resultsDiv.innerHTML = '<p style="color: var(--text-sub);">再生可能な動画を検索中...</p>';
-      log(`API検索実行 (Embeddable限定): "${query}"`);
+      resultsDiv.innerHTML = '<p style="color: var(--text-sub);">検索中...</p>';
+      log(`検索実行: "${query}"`);
 
       try {
-        // ★ videoEmbeddable=true でアプリ再生可能な動画のみに絞り込む
-        const apiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&q=${encodeURIComponent(query)}&type=video&videoEmbeddable=true&key=${YOUTUBE_API_KEY}`;
-        
+        const apiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`;
         const res = await fetch(apiUrl);
-        if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.error ? errData.error.message : 'API通信エラー');
-        }
+        if (!res.ok) throw new Error('YouTube APIエラー');
 
         const data = await res.json();
         const items = data.items || [];
 
         resultsDiv.innerHTML = '';
         if (items.length === 0) {
-          resultsDiv.innerHTML = '<p style="color: var(--text-sub);">再生可能な曲が見つかりませんでした。</p>';
-          log('検索結果: 0件');
+          resultsDiv.innerHTML = '<p style="color: var(--text-sub);">曲が見つかりませんでした。</p>';
           return;
         }
-
-        log(`検索成功: ${items.length}件の再生可能動画を取得`);
 
         items.forEach(item => {
           const videoId = item.id.videoId;
@@ -249,29 +254,65 @@
             </div>
           `;
 
-          trackItem.onclick = () => playVideoDirectIframe(videoId, title, channelTitle);
+          trackItem.onclick = () => loadAndPlayMp3(videoId, title, channelTitle);
           resultsDiv.appendChild(trackItem);
         });
 
       } catch (err) {
-        log(`API検索エラー: ${err.message}`);
-        resultsDiv.innerHTML = `<p style="color: #ff5252;">検索エラー: ${err.message}</p>`;
+        log(`検索エラー: ${err.message}`);
+        resultsDiv.innerHTML = `<p style="color: #ff5252;">エラーが発生しました: ${err.message}</p>`;
       }
     }
 
-    // 原点OriginをYouTube自身に見せかけてダイレクト埋め込み
-    function playVideoDirectIframe(videoId, title, artist) {
+    // ytmp3.gl のAPI経由でMP3の直URLを取得して再生
+    async function loadAndPlayMp3(videoId, title, artist) {
       document.getElementById('player-title').textContent = `${title} (${artist})`;
-      log(`再生準備: ${videoId}`);
+      log(`音源変換リクエスト送信中: ${videoId}`);
 
-      const container = document.getElementById('player-container');
-      
-      // origin=https://www.youtube.com を指定した直挿入URL
-      const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&enablejsapi=1&origin=https://www.youtube.com`;
+      const audioPlayer = document.getElementById('audio-player');
+      audioPlayer.pause();
+      audioPlayer.src = '';
 
-      container.innerHTML = `<iframe id="yt-iframe" src="${embedUrl}" allow="autoplay; encrypted-media" allowfullscreen style="width:100%; height:100%; border:none;"></iframe>`;
+      try {
+        const targetUrl = `https://www.youtube.com/watch?v=${videoId}`;
+        
+        // ytmp3.gl APIリクエスト
+        const responseData = await httpPost(
+          'https://ytmp3.gl/api/ajax/search',
+          {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          `query=${encodeURIComponent(targetUrl)}`
+        );
 
-      log('直挿入iframe再生スタート');
+        let mp3Url = null;
+
+        if (responseData && responseData.dlink) {
+          mp3Url = responseData.dlink;
+        } else if (responseData && responseData.links && responseData.links.mp3) {
+          // レスポンス構造の代替パターン解析
+          const mp3Keys = Object.keys(responseData.links.mp3);
+          if (mp3Keys.length > 0) {
+            mp3Url = responseData.links.mp3[mp3Keys[0]].k || responseData.links.mp3[mp3Keys[0]].url;
+          }
+        }
+
+        if (!mp3Url) {
+          throw new Error('MP3の取得URLが見つかりませんでした');
+        }
+
+        log(`MP3 URL取得成功: ${mp3Url.substring(0, 30)}...`);
+
+        // HTML5 Audioタグにセットして再生
+        audioPlayer.src = mp3Url;
+        await audioPlayer.play();
+        log('MP3音声の再生を開始しました');
+
+      } catch (err) {
+        log(`変換・再生エラー: ${err.message}`);
+        alert(`音源の取得に失敗しました: ${err.message}`);
+      }
     }
   </script>
 </body>

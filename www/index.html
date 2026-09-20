@@ -3,13 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <!-- ★エラー153対策: リファラーポリシーを明示設定 -->
-  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="referrer" content="no-referrer-when-downgrade">
   <title>MusicSpace Pro</title>
   
   <script src="capacitor.js"></script>
 
-  <!-- Brave方式: iOSバックグラウンド移行時の自動一時停止を防ぐ偽装スクリプト -->
+  <!-- Brave方式: バックグラウンド移行時の自動一時停止を防止 -->
   <script>
     (function() {
       Object.defineProperty(document, 'visibilityState', { get: function() { return 'visible'; }, configurable: true });
@@ -20,9 +19,6 @@
       window.addEventListener('pagehide', block, true);
     })();
   </script>
-
-  <!-- YouTube IFrame Player API -->
-  <script src="https://www.youtube.com/iframe_api"></script>
 
   <style>
     :root {
@@ -188,17 +184,16 @@
     <div id="player-title" class="track-title">曲を選択してください</div>
     
     <div id="player-container">
-      <div id="yt-player"></div>
+      <div style="color: #666; display: flex; align-items: center; justify-content: center; height: 100%; font-size: 13px;">
+        曲を選択するとプレイヤーが起動します
+      </div>
     </div>
 
-    <div id="debug-log">ログ: YouTube Data API モード起動</div>
+    <div id="debug-log">ログ: エラー153フィルター適用済み</div>
   </div>
 
   <script>
     const YOUTUBE_API_KEY = 'AIzaSyD0qeDWYwSK-S3g3-ESyGhi-UUziAjZo9g';
-    
-    let ytPlayer = null;
-    let isApiReady = false;
 
     function log(msg) {
       const logDiv = document.getElementById('debug-log');
@@ -206,21 +201,18 @@
       console.log(msg);
     }
 
-    function onYouTubeIframeAPIReady() {
-      isApiReady = true;
-      log('YouTube Player API 準備完了');
-    }
-
+    // 埋め込み再生許可（videoEmbeddable=true）の動画のみを厳選検索
     async function searchMusic() {
       const query = document.getElementById('search-input').value;
       if (!query) return;
 
       const resultsDiv = document.getElementById('search-results');
-      resultsDiv.innerHTML = '<p style="color: var(--text-sub);">YouTubeから検索中...</p>';
-      log(`API検索実行: "${query}"`);
+      resultsDiv.innerHTML = '<p style="color: var(--text-sub);">再生可能な動画を検索中...</p>';
+      log(`API検索実行 (Embeddable限定): "${query}"`);
 
       try {
-        const apiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`;
+        // ★ videoEmbeddable=true でアプリ再生可能な動画のみに絞り込む
+        const apiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&q=${encodeURIComponent(query)}&type=video&videoEmbeddable=true&key=${YOUTUBE_API_KEY}`;
         
         const res = await fetch(apiUrl);
         if (!res.ok) {
@@ -233,12 +225,12 @@
 
         resultsDiv.innerHTML = '';
         if (items.length === 0) {
-          resultsDiv.innerHTML = '<p style="color: var(--text-sub);">曲が見つかりませんでした。</p>';
+          resultsDiv.innerHTML = '<p style="color: var(--text-sub);">再生可能な曲が見つかりませんでした。</p>';
           log('検索結果: 0件');
           return;
         }
 
-        log(`検索成功: ${items.length}件の動画を取得`);
+        log(`検索成功: ${items.length}件の再生可能動画を取得`);
 
         items.forEach(item => {
           const videoId = item.id.videoId;
@@ -257,7 +249,7 @@
             </div>
           `;
 
-          trackItem.onclick = () => playVideo(videoId, title, channelTitle);
+          trackItem.onclick = () => playVideoDirectIframe(videoId, title, channelTitle);
           resultsDiv.appendChild(trackItem);
         });
 
@@ -267,36 +259,19 @@
       }
     }
 
-    function playVideo(videoId, title, artist) {
+    // 原点OriginをYouTube自身に見せかけてダイレクト埋め込み
+    function playVideoDirectIframe(videoId, title, artist) {
       document.getElementById('player-title').textContent = `${title} (${artist})`;
       log(`再生準備: ${videoId}`);
 
-      if (!ytPlayer) {
-        ytPlayer = new YT.Player('yt-player', {
-          height: '100%',
-          width: '100%',
-          videoId: videoId,
-          // ★エラー153（Referrerエラー）回避用の設定
-          host: 'https://www.youtube-nocookie.com',
-          playerVars: {
-            'autoplay': 1,
-            'playsinline': 1,
-            'controls': 1,
-            'enablejsapi': 1,
-            'origin': location.origin
-          },
-          events: {
-            'onReady': (e) => {
-              e.target.playVideo();
-              log('再生スタート（エラー153対策適用済み）');
-            },
-            'onError': (e) => log(`再生エラー: コード ${e.data}`)
-          }
-        });
-      } else {
-        ytPlayer.loadVideoById(videoId);
-        log('新しい動画をロードして再生');
-      }
+      const container = document.getElementById('player-container');
+      
+      // origin=https://www.youtube.com を指定した直挿入URL
+      const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&playsinline=1&enablejsapi=1&origin=https://www.youtube.com`;
+
+      container.innerHTML = `<iframe id="yt-iframe" src="${embedUrl}" allow="autoplay; encrypted-media" allowfullscreen style="width:100%; height:100%; border:none;"></iframe>`;
+
+      log('直挿入iframe再生スタート');
     }
   </script>
 </body>

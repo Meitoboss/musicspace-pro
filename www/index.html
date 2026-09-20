@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <!-- ★エラー153対策: リファラーポリシーを明示設定 -->
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>MusicSpace Pro</title>
   
   <script src="capacitor.js"></script>
@@ -193,7 +195,6 @@
   </div>
 
   <script>
-    // 提示された YouTube Data API v3 キー
     const YOUTUBE_API_KEY = 'AIzaSyD0qeDWYwSK-S3g3-ESyGhi-UUziAjZo9g';
     
     let ytPlayer = null;
@@ -205,13 +206,11 @@
       console.log(msg);
     }
 
-    // YouTube Iframe API準備完了時
     function onYouTubeIframeAPIReady() {
       isApiReady = true;
       log('YouTube Player API 準備完了');
     }
 
-    // YouTube Data API v3 を使った楽曲検索（爆速・エラーゼロ）
     async function searchMusic() {
       const query = document.getElementById('search-input').value;
       if (!query) return;
@@ -258,7 +257,6 @@
             </div>
           `;
 
-          // タップされた動画IDでそのまま再生
           trackItem.onclick = () => playVideo(videoId, title, channelTitle);
           resultsDiv.appendChild(trackItem);
         });
@@ -269,7 +267,6 @@
       }
     }
 
-    // 選択された動画を再生
     function playVideo(videoId, title, artist) {
       document.getElementById('player-title').textContent = `${title} (${artist})`;
       log(`再生準備: ${videoId}`);
@@ -279,16 +276,19 @@
           height: '100%',
           width: '100%',
           videoId: videoId,
+          // ★エラー153（Referrerエラー）回避用の設定
+          host: 'https://www.youtube-nocookie.com',
           playerVars: {
             'autoplay': 1,
-            'playsinline': 1, // iOSで全画面化させずインライン再生（バックグラウンド再生に必須）
+            'playsinline': 1,
             'controls': 1,
-            'enablejsapi': 1
+            'enablejsapi': 1,
+            'origin': location.origin
           },
           events: {
             'onReady': (e) => {
               e.target.playVideo();
-              log('再生スタート（バックグラウンド保持無効化スクリプト適用中）');
+              log('再生スタート（エラー153対策適用済み）');
             },
             'onError': (e) => log(`再生エラー: コード ${e.data}`)
           }

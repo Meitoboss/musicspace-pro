@@ -2,6 +2,9 @@
   "appId": "com.musicspace.pro",
   "appName": "MusicSpace Pro",
   "webDir": "www",
+  "server": {
+    "iosScheme": "https"
+  },
   "plugins": {
     "CapacitorHttp": {
       "enabled": true

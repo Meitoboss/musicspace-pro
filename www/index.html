@@ -5,10 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>MusicSpace Pro</title>
   
-  <!-- Capacitor Bridge (iOS通信ブロック回避に必須) -->
   <script src="capacitor.js"></script>
-  <!-- YouTube IFrame API -->
-  <script src="https://www.youtube.com/iframe_api"></script>
 
   <style>
     :root {
@@ -116,8 +113,6 @@
       font-size: 13px;
       color: var(--text-sub);
       margin-top: 4px;
-      display: flex;
-      align-items: center;
     }
 
     .player-bar {
@@ -133,14 +128,6 @@
       flex-direction: column;
       gap: 8px;
       z-index: 100;
-    }
-
-    #yt-player-container {
-      width: 100%;
-      height: 80px;
-      border-radius: 8px;
-      overflow: hidden;
-      background: #000;
     }
 
     audio {
@@ -176,27 +163,20 @@
   <div class="player-bar">
     <div id="player-title" class="track-title">曲を選択してください</div>
     
-    <!-- YouTube動画プレイヤー -->
-    <div id="yt-player-container" style="display: none;">
-      <div id="yt-player"></div>
-    </div>
-    
-    <!-- 音声プレイヤー (iTunes API / フォールバック用) -->
-    <audio id="audio-player" controls style="display: none;"></audio>
+    <!-- 音声プレイヤー（フル再生・バックグラウンド再生対応） -->
+    <audio id="audio-player" controls style="width: 100%;"></audio>
 
     <div id="debug-log">ログ: システム準備完了</div>
   </div>
 
   <script>
-    let ytPlayer = null;
-    let isYtReady = false;
     const audioPlayer = document.getElementById('audio-player');
-    const ytContainer = document.getElementById('yt-player-container');
 
-    const INVIDIOUS_SERVERS = [
-      'https://yewtu.be',
-      'https://invidious.nerdvpn.de',
+    // 安定稼働している YouTube 音声ストリームプロキシ群
+    const YOUTUBE_SEARCH_SERVERS = [
       'https://inv.tux.pizza',
+      'https://invidious.nerdvpn.de',
+      'https://yewtu.be',
       'https://invidious.drgns.space'
     ];
 
@@ -206,22 +186,7 @@
       console.log(msg);
     }
 
-    function onYouTubeIframeAPIReady() {
-      log('YouTube API 初期化完了');
-      ytPlayer = new YT.Player('yt-player', {
-        height: '100%',
-        width: '100%',
-        playerVars: { 'playsinline': 1, 'autoplay': 1, 'controls': 1 },
-        events: {
-          'onReady': () => { isYtReady = true; },
-          'onError': (e) => {
-            log(`YouTube再生エラー (${e.data}) -> 音声プレイヤーへフォールバック`);
-          }
-        }
-      });
-    }
-
-    // 100%成功保証付き ハイブリッド検索処理
+    // 高速・高精度検索（iTunes APIを使用）
     async function searchMusic() {
       const query = document.getElementById('search-input').value;
       if (!query) return;
@@ -230,126 +195,98 @@
       resultsDiv.innerHTML = '<p style="color: var(--text-sub);">検索中...</p>';
       log(`検索開始: "${query}"`);
 
-      let itemsFound = [];
-
-      // 1. Apple iTunes 公式API検索 (CORS制限なし・100%成功)
       try {
-        const itunesRes = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&country=JP&limit=15`);
-        if (itunesRes.ok) {
-          const itunesData = await itunesRes.json();
-          if (itunesData.results && itunesData.results.length > 0) {
-            itunesData.results.forEach(item => {
-              itemsFound.push({
-                type: 'audio',
-                title: item.trackName,
-                artist: item.artistName,
-                thumb: item.artworkUrl100 ? item.artworkUrl100.replace('100x100bb', '300x300bb') : '',
-                audioUrl: item.previewUrl,
-                source: 'iTunes'
-              });
-            });
-            log(`iTunes API: ${itunesData.results.length}件取得成功`);
-          }
+        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&country=JP&limit=20`);
+        if (!res.ok) throw new Error('検索通信エラー');
+
+        const data = await res.json();
+        const items = data.results || [];
+
+        resultsDiv.innerHTML = '';
+        if (items.length === 0) {
+          resultsDiv.innerHTML = '<p style="color: var(--text-sub);">該当する曲が見つかりませんでした。</p>';
+          log('検索結果: 0件');
+          return;
         }
-      } catch (err) {
-        log(`iTunes API接続スキップ: ${err.message}`);
-      }
 
-      // 2. Invidious API (YouTube検索)
-      for (const server of INVIDIOUS_SERVERS) {
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 3500);
+        log(`検索成功: ${items.length}件取得`);
 
-          const res = await fetch(`${server}/api/v1/search?q=${encodeURIComponent(query)}&type=video`, {
-            signal: controller.signal
-          });
-          clearTimeout(timeoutId);
-
-          if (res.ok) {
-            const ytItems = await res.json();
-            if (Array.isArray(ytItems)) {
-              let ytCount = 0;
-              ytItems.slice(0, 10).forEach(item => {
-                if (item.videoId) {
-                  itemsFound.push({
-                    type: 'youtube',
-                    title: item.title,
-                    artist: item.author || 'YouTube',
-                    thumb: `https://i.ytimg.com/vi/${item.videoId}/hqdefault.jpg`,
-                    videoId: item.videoId,
-                    source: 'YouTube'
-                  });
-                  ytCount++;
-                }
-              });
-              log(`YouTube (${server}): ${ytCount}件取得成功`);
-              break;
-            }
-          }
-        } catch (e) {
-          // 次のサーバーへ
-        }
-      }
-
-      // 描画
-      resultsDiv.innerHTML = '';
-      if (itemsFound.length === 0) {
-        resultsDiv.innerHTML = '<p style="color: var(--text-sub);">該当する曲が見つかりませんでした。</p>';
-        log('検索結果: 0件');
-        return;
-      }
-
-      log(`検索完了: 計${itemsFound.length}件表示`);
-
-      itemsFound.forEach(item => {
-        const trackItem = document.createElement('div');
-        trackItem.className = 'track-item';
-        trackItem.innerHTML = `
-          <img class="track-thumb" src="${item.thumb}" alt="">
-          <div class="track-info">
-            <div class="track-title">${item.title}</div>
-            <div class="track-artist">
-              ${item.artist}
-              <span style="font-size:10px; color:var(--accent-color); border:1px solid var(--accent-color); padding:1px 4px; border-radius:4px; margin-left:6px;">${item.source}</span>
+        items.forEach(item => {
+          const trackItem = document.createElement('div');
+          trackItem.className = 'track-item';
+          const thumbUrl = item.artworkUrl100 ? item.artworkUrl100.replace('100x100bb', '300x300bb') : '';
+          
+          trackItem.innerHTML = `
+            <img class="track-thumb" src="${thumbUrl}" alt="">
+            <div class="track-info">
+              <div class="track-title">${item.trackName}</div>
+              <div class="track-artist">${item.artistName}</div>
             </div>
-          </div>
-        `;
-        trackItem.onclick = () => playTrack(item);
-        resultsDiv.appendChild(trackItem);
-      });
+          `;
+
+          // タップでフル音源取得へ
+          trackItem.onclick = () => playFullTrack(item.trackName, item.artistName, item.previewUrl);
+          resultsDiv.appendChild(trackItem);
+        });
+
+      } catch (err) {
+        log(`検索失敗: ${err.message}`);
+        resultsDiv.innerHTML = `<p style="color: #ff5252;">検索エラーが発生しました。</p>`;
+      }
     }
 
-    // トラック再生処理
-    async function playTrack(item) {
-      document.getElementById('player-title').textContent = item.title;
-      log(`再生開始: ${item.title} (${item.source})`);
+    // フル音源の取得および再生
+    async function playFullTrack(title, artist, fallbackPreviewUrl) {
+      document.getElementById('player-title').textContent = `${title} - ${artist}`;
+      log(`フル音源取得中: "${title} ${artist}"`);
 
-      // iOSオーディオ制限解除ダミーコード
+      // iOSオーディオ制限の即時解除（ダミー再生）
       audioPlayer.pause();
+      audioPlayer.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+      audioPlayer.play().catch(() => {});
 
-      if (item.type === 'audio') {
-        ytContainer.style.display = 'none';
-        if (ytPlayer && typeof ytPlayer.stopVideo === 'function') ytPlayer.stopVideo();
+      let fullAudioFound = false;
 
-        audioPlayer.style.display = 'block';
-        audioPlayer.src = item.audioUrl;
+      // YouTubeからフル音源（.m4a / .webm ストリーム）を検索・取得
+      for (const server of YOUTUBE_SEARCH_SERVERS) {
         try {
-          await audioPlayer.play();
-          log('オーディオ再生成功！');
-        } catch (err) {
-          log(`オーディオ再生制限: ${err.message}`);
-        }
-      } else if (item.type === 'youtube') {
-        audioPlayer.style.display = 'none';
-        ytContainer.style.display = 'block';
+          log(`ストリーム検索: ${server}`);
+          const searchQuery = `${title} ${artist}`;
+          const searchRes = await fetch(`${server}/api/v1/search?q=${encodeURIComponent(searchQuery)}&type=video`);
+          if (!searchRes.ok) continue;
 
-        if (ytPlayer && isYtReady) {
-          ytPlayer.loadVideoById(item.videoId);
-          log('YouTube再生試行中...');
-        } else {
-          log('YouTubeプレイヤー未準備');
+          const videos = await searchRes.json();
+          if (!Array.isArray(videos) || videos.length === 0) continue;
+
+          const videoId = videos[0].videoId;
+          log(`動画ID特定: ${videoId} -> 音声リンク抽出中`);
+
+          const videoInfoRes = await fetch(`${server}/api/v1/videos/${videoId}`);
+          if (!videoInfoRes.ok) continue;
+
+          const videoInfo = await videoInfoRes.json();
+          const adaptiveFormats = videoInfo.adaptiveFormats || [];
+
+          // 音声ストリーム（m4a / webm）の抽出
+          const audioFormat = adaptiveFormats.find(f => f.type && f.type.includes('audio'));
+
+          if (audioFormat && audioFormat.url) {
+            log('フル音声ストリーム取得成功！再生を開始します');
+            audioPlayer.src = audioFormat.url;
+            await audioPlayer.play();
+            fullAudioFound = true;
+            break;
+          }
+        } catch (e) {
+          log(`サーバーエラー (${server}): ${e.message}`);
         }
+      }
+
+      // 万が一フル音源が全サーバーで取得できなかった場合は30秒試聴用へ安全フォールバック
+      if (!fullAudioFound) {
+        log('フル音源の取得に失敗したため、バックアップ音源で再生します');
+        audioPlayer.src = fallbackPreviewUrl;
+        await audioPlayer.play();
       }
     }
   </script>

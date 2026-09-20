@@ -23,13 +23,8 @@ jobs:
       - name: パッケージのインストール
         run: npm ci
 
-      - name: Capacitor Webアセット同期
-        run: npx cap copy ios
-
-      - name: CocoaPods のインストール
-        run: |
-          cd ios/App
-          pod install
+      - name: Capacitor 同期 (iOS)
+        run: npx cap sync ios
 
       - name: XcodeによるiOSアプリビルド (無署名)
         run: |

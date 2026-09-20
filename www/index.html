@@ -166,22 +166,25 @@
     <!-- 音声プレイヤー -->
     <audio id="audio-player" controls style="width: 100%;"></audio>
 
-    <div id="debug-log">ログ: システム準備完了</div>
+    <div id="debug-log">ログ: Cobaltエンジン準備完了</div>
   </div>
 
   <script>
     const audioPlayer = document.getElementById('audio-player');
 
-    // 高信頼性 Invidious サーバー群
-    const INVIDIOUS_SERVERS = [
+    // 検索用バックアップエンドポイント
+    const SEARCH_SERVERS = [
       'https://inv.tux.pizza',
       'https://invidious.nerdvpn.de',
-      'https://yewtu.be',
-      'https://invidious.drgns.space'
+      'https://yewtu.be'
     ];
 
-    let currentTrackCandidates = [];
-    let currentServerIndex = 0;
+    // Cobalt 音声抽出APIエンドポイント群
+    const COBALT_SERVERS = [
+      'https://api.cobalt.tools',
+      'https://cobalt-api.kwiatek.xyz'
+    ];
+
     let fallbackPreviewUrl = '';
 
     function log(msg) {
@@ -189,13 +192,6 @@
       logDiv.textContent = `[${new Date().toLocaleTimeString()}] ${msg}\n` + logDiv.textContent;
       console.log(msg);
     }
-
-    // プレイヤー要素本体のエラー検知ハンドラ
-    audioPlayer.onerror = () => {
-      const err = audioPlayer.error;
-      log(`再生バーエラー検知 (Code: ${err ? err.code : 'unknown'}) -> 別サーバーへ切替`);
-      tryNextServerOrFallback();
-    };
 
     // 検索処理 (iTunes API)
     async function searchMusic() {
@@ -245,21 +241,21 @@
       }
     }
 
-    // フル音源の再生開始
+    // Cobalt APIを使用したフル音源再生
     async function playFullTrack(title, artist, previewUrl) {
       document.getElementById('player-title').textContent = `${title} - ${artist}`;
       log(`フル音源検索: "${title} ${artist}"`);
       fallbackPreviewUrl = previewUrl;
 
-      // iOSオーディオ制限の即時解除（ダミー音再生）
+      // iOSの音声ロック解除
       audioPlayer.pause();
       audioPlayer.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
       audioPlayer.play().catch(() => {});
 
       let videoId = null;
 
-      // 1. YouTube VideoID の特定
-      for (const server of INVIDIOUS_SERVERS) {
+      // 1. YouTube VideoID の取得
+      for (const server of SEARCH_SERVERS) {
         try {
           const searchQuery = `${title} ${artist}`;
           const res = await fetch(`${server}/api/v1/search?q=${encodeURIComponent(searchQuery)}&type=video`);
@@ -277,49 +273,62 @@
       }
 
       if (!videoId) {
-        log('YouTubeでのID特定に失敗 -> プレビュー再生へ');
+        log('YouTube ID特定失敗 -> 30秒試聴再生へ');
         playFallback();
         return;
       }
 
-      // 2. iOS互換 m4a プロキシストリーム候補URLリストの生成
-      currentTrackCandidates = INVIDIOUS_SERVERS.map(server => `${server}/latest_version?id=${videoId}&itag=140&local=true`);
-      currentServerIndex = 0;
+      // 2. Cobalt APIでフル音源URLを生成
+      const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
+      let audioStreamUrl = null;
 
-      // 試行開始
-      tryCandidateStream();
-    }
+      for (const cobaltServer of COBALT_SERVERS) {
+        try {
+          log(`Cobalt変換要求 [${cobaltServer}]...`);
+          const response = await fetch(cobaltServer, {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              url: youtubeUrl,
+              downloadMode: 'audio',
+              audioFormat: 'm4a'
+            })
+          });
 
-    function tryCandidateStream() {
-      if (currentServerIndex < currentTrackCandidates.length) {
-        const streamUrl = currentTrackCandidates[currentServerIndex];
-        log(`再生試行 [サーバー${currentServerIndex + 1}]: ${streamUrl}`);
-        audioPlayer.src = streamUrl;
+          if (response.ok) {
+            const data = await response.json();
+            if (data.url) {
+              audioStreamUrl = data.url;
+              log('Cobalt音源抽出に成功！');
+              break;
+            }
+          }
+        } catch (err) {
+          log(`Cobalt接続エラー: ${err.message}`);
+        }
+      }
+
+      // 3. 再生処理
+      if (audioStreamUrl) {
+        audioPlayer.src = audioStreamUrl;
         audioPlayer.play().then(() => {
-          log('再生スタート！');
+          log('フル音源の再生に成功しました！');
         }).catch(err => {
-          log(`JS再生エラー: ${err.message}`);
-          tryNextServerOrFallback();
+          log(`再生失敗: ${err.message} -> 予備音源へ`);
+          playFallback();
         });
       } else {
-        log('全フル音源サーバーの試行完了 -> プレビュー再生へ');
-        playFallback();
-      }
-    }
-
-    function tryNextServerOrFallback() {
-      currentServerIndex++;
-      if (currentServerIndex < currentTrackCandidates.length) {
-        tryCandidateStream();
-      } else {
-        log('全サーバー失敗 -> プレビュー再生へ自動移行');
+        log('全Cobaltサーバー失敗 -> 30秒試聴再生へ');
         playFallback();
       }
     }
 
     function playFallback() {
       if (!fallbackPreviewUrl) return;
-      log('バックアップ音源（30秒）で再生開始');
+      log('バックアップ音源（30秒）で再生中');
       audioPlayer.src = fallbackPreviewUrl;
       audioPlayer.play().catch(e => log(`プレビュー再生エラー: ${e.message}`));
     }

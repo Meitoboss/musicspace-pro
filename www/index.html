@@ -6,7 +6,20 @@
   <title>MusicSpace Pro</title>
   
   <script src="capacitor.js"></script>
-  <!-- YouTube 公式 IFrame API -->
+
+  <!-- Brave方式: iOSバックグラウンド移行時の自動一時停止を防ぐ偽装スクリプト -->
+  <script>
+    (function() {
+      Object.defineProperty(document, 'visibilityState', { get: function() { return 'visible'; }, configurable: true });
+      Object.defineProperty(document, 'hidden', { get: function() { return false; }, configurable: true });
+      const block = function(e) { e.stopImmediatePropagation(); };
+      window.addEventListener('visibilitychange', block, true);
+      document.addEventListener('visibilitychange', block, true);
+      window.addEventListener('pagehide', block, true);
+    })();
+  </script>
+
+  <!-- YouTube IFrame Player API -->
   <script src="https://www.youtube.com/iframe_api"></script>
 
   <style>
@@ -49,7 +62,7 @@
     .content-section {
       flex: 1;
       overflow-y: auto;
-      padding: 16px 16px 240px 16px;
+      padding: 16px 16px 220px 16px;
     }
 
     .search-box {
@@ -90,8 +103,8 @@
     }
 
     .track-thumb {
-      width: 48px;
-      height: 48px;
+      width: 56px;
+      height: 56px;
       border-radius: 8px;
       background: #333;
       object-fit: cover;
@@ -115,6 +128,9 @@
       font-size: 13px;
       color: var(--text-sub);
       margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .player-bar {
@@ -132,10 +148,10 @@
       z-index: 100;
     }
 
-    #yt-player-container {
+    #player-container {
       width: 100%;
-      height: 120px;
-      border-radius: 8px;
+      height: 140px;
+      border-radius: 10px;
       overflow: hidden;
       background: #000;
     }
@@ -169,24 +185,19 @@
   <div class="player-bar">
     <div id="player-title" class="track-title">曲を選択してください</div>
     
-    <!-- YouTube 公式プレイヤー本体 -->
-    <div id="yt-player-container">
+    <div id="player-container">
       <div id="yt-player"></div>
     </div>
 
-    <div id="debug-log">ログ: 公式プレイヤー初期化待ち</div>
+    <div id="debug-log">ログ: YouTube Data API モード起動</div>
   </div>
 
   <script>
+    // 提示された YouTube Data API v3 キー
+    const YOUTUBE_API_KEY = 'AIzaSyD0qeDWYwSK-S3g3-ESyGhi-UUziAjZo9g';
+    
     let ytPlayer = null;
-    let isYtReady = false;
-
-    // 軽量な検索専用サーバー群（ID特定のみに使用）
-    const SEARCH_SERVERS = [
-      'https://inv.tux.pizza',
-      'https://invidious.nerdvpn.de',
-      'https://yewtu.be'
-    ];
+    let isApiReady = false;
 
     function log(msg) {
       const logDiv = document.getElementById('debug-log');
@@ -194,113 +205,97 @@
       console.log(msg);
     }
 
-    // YouTube 公式 IFrame API 初期化処理
+    // YouTube Iframe API準備完了時
     function onYouTubeIframeAPIReady() {
-      log('YouTube公式API準備完了');
-      ytPlayer = new YT.Player('yt-player', {
-        height: '100%',
-        width: '100%',
-        playerVars: {
-          'playsinline': 1,
-          'autoplay': 1,
-          'controls': 1
-        },
-        events: {
-          'onReady': () => {
-            isYtReady = true;
-            log('プレイヤー準備完了');
-          },
-          'onError': (e) => {
-            log(`YouTubeプレイヤーエラー: Code ${e.data}`);
-          }
-        }
-      });
+      isApiReady = true;
+      log('YouTube Player API 準備完了');
     }
 
-    // iTunes API による超高速楽曲検索
+    // YouTube Data API v3 を使った楽曲検索（爆速・エラーゼロ）
     async function searchMusic() {
       const query = document.getElementById('search-input').value;
       if (!query) return;
 
       const resultsDiv = document.getElementById('search-results');
-      resultsDiv.innerHTML = '<p style="color: var(--text-sub);">検索中...</p>';
-      log(`検索開始: "${query}"`);
+      resultsDiv.innerHTML = '<p style="color: var(--text-sub);">YouTubeから検索中...</p>';
+      log(`API検索実行: "${query}"`);
 
       try {
-        const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&country=JP&limit=20`);
-        if (!res.ok) throw new Error('検索通信エラー');
+        const apiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`;
+        
+        const res = await fetch(apiUrl);
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error ? errData.error.message : 'API通信エラー');
+        }
 
         const data = await res.json();
-        const items = data.results || [];
+        const items = data.items || [];
 
         resultsDiv.innerHTML = '';
         if (items.length === 0) {
-          resultsDiv.innerHTML = '<p style="color: var(--text-sub);">該当する曲が見つかりませんでした。</p>';
+          resultsDiv.innerHTML = '<p style="color: var(--text-sub);">曲が見つかりませんでした。</p>';
           log('検索結果: 0件');
           return;
         }
 
-        log(`検索成功: ${items.length}件取得`);
+        log(`検索成功: ${items.length}件の動画を取得`);
 
         items.forEach(item => {
+          const videoId = item.id.videoId;
+          const title = item.snippet.title;
+          const channelTitle = item.snippet.channelTitle;
+          const thumbUrl = item.snippet.thumbnails.medium ? item.snippet.thumbnails.medium.url : item.snippet.thumbnails.default.url;
+
           const trackItem = document.createElement('div');
           trackItem.className = 'track-item';
-          const thumbUrl = item.artworkUrl100 ? item.artworkUrl100.replace('100x100bb', '300x300bb') : '';
           
           trackItem.innerHTML = `
             <img class="track-thumb" src="${thumbUrl}" alt="">
             <div class="track-info">
-              <div class="track-title">${item.trackName}</div>
-              <div class="track-artist">${item.artistName}</div>
+              <div class="track-title">${title}</div>
+              <div class="track-artist">${channelTitle}</div>
             </div>
           `;
 
-          trackItem.onclick = () => playFullTrack(item.trackName, item.artistName);
+          // タップされた動画IDでそのまま再生
+          trackItem.onclick = () => playVideo(videoId, title, channelTitle);
           resultsDiv.appendChild(trackItem);
         });
 
       } catch (err) {
-        log(`検索失敗: ${err.message}`);
-        resultsDiv.innerHTML = `<p style="color: #ff5252;">検索エラーが発生しました。</p>`;
+        log(`API検索エラー: ${err.message}`);
+        resultsDiv.innerHTML = `<p style="color: #ff5252;">検索エラー: ${err.message}</p>`;
       }
     }
 
-    // フル動画・音声の再生処理
-    async function playFullTrack(title, artist) {
-      document.getElementById('player-title').textContent = `${title} - ${artist}`;
-      log(`VideoID特定中: "${title} ${artist}"`);
+    // 選択された動画を再生
+    function playVideo(videoId, title, artist) {
+      document.getElementById('player-title').textContent = `${title} (${artist})`;
+      log(`再生準備: ${videoId}`);
 
-      let videoId = null;
-
-      // YouTube VideoID の特定（動画検索のみ実施）
-      for (const server of SEARCH_SERVERS) {
-        try {
-          const searchQuery = `${title} ${artist}`;
-          const res = await fetch(`${server}/api/v1/search?q=${encodeURIComponent(searchQuery)}&type=video`);
-          if (res.ok) {
-            const videos = await res.json();
-            if (Array.isArray(videos) && videos.length > 0 && videos[0].videoId) {
-              videoId = videos[0].videoId;
-              log(`VideoID特定成功: ${videoId}`);
-              break;
-            }
+      if (!ytPlayer) {
+        ytPlayer = new YT.Player('yt-player', {
+          height: '100%',
+          width: '100%',
+          videoId: videoId,
+          playerVars: {
+            'autoplay': 1,
+            'playsinline': 1, // iOSで全画面化させずインライン再生（バックグラウンド再生に必須）
+            'controls': 1,
+            'enablejsapi': 1
+          },
+          events: {
+            'onReady': (e) => {
+              e.target.playVideo();
+              log('再生スタート（バックグラウンド保持無効化スクリプト適用中）');
+            },
+            'onError': (e) => log(`再生エラー: コード ${e.data}`)
           }
-        } catch (e) {
-          // 次の検索サーバーへ
-        }
-      }
-
-      if (!videoId) {
-        log('YouTube IDの取得に失敗しました');
-        return;
-      }
-
-      // 公式プレイヤーで読み込み＆再生
-      if (ytPlayer && isYtReady) {
-        log('YouTube公式プレイヤーでフル再生開始');
-        ytPlayer.loadVideoById(videoId);
+        });
       } else {
-        log('プレイヤーがまだ初期化されていません');
+        ytPlayer.loadVideoById(videoId);
+        log('新しい動画をロードして再生');
       }
     }
   </script>

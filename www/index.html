@@ -44,7 +44,7 @@
     .content-section {
       flex: 1;
       overflow-y: auto;
-      padding: 16px 16px 180px 16px;
+      padding: 16px 16px 200px 16px;
     }
 
     /* 検索エリア */
@@ -138,15 +138,19 @@
       background: #000;
     }
 
-    /* デバッグログ表示領域 */
+    audio {
+      width: 100%;
+      margin-top: 4px;
+    }
+
     #debug-log {
       background: #000;
       color: #00ff66;
       font-family: monospace;
       font-size: 11px;
-      padding: 8px;
+      padding: 6px;
       border-radius: 6px;
-      max-height: 60px;
+      max-height: 50px;
       overflow-y: auto;
       white-space: pre-wrap;
       word-break: break-all;
@@ -170,50 +174,86 @@
 
   <!-- プレイヤーエリア -->
   <div class="player-bar">
-    <div id="player-title" class="track-title" style="margin-bottom: 4px;">曲を選択してください</div>
-    <!-- YouTube埋め込みプレイヤー本体 -->
+    <div id="player-title" class="track-title">曲を選択してください</div>
+    
+    <!-- YouTube動画プレイヤー（非対応時フォールバック対応） -->
     <div id="yt-player-container">
       <div id="yt-player"></div>
     </div>
-    <!-- デバッグ用ログ画面 -->
+    
+    <!-- バックアップ用 HTML5 オーディオプレイヤー -->
+    <audio id="fallback-audio" controls style="display: none;"></audio>
+
     <div id="debug-log">ログ: 準備完了</div>
   </div>
 
   <script>
     let player = null;
     let isPlayerReady = false;
+    let currentVideoId = '';
+    let currentTitle = '';
 
-    // ログ出力関数
+    const fallbackAudio = document.getElementById('fallback-audio');
+
     function log(msg) {
       const logDiv = document.getElementById('debug-log');
       logDiv.textContent = `[${new Date().toLocaleTimeString()}] ${msg}\n` + logDiv.textContent;
       console.log(msg);
     }
 
-    // YouTube IFrame APIの初期化
+    // YouTube APIの初期化（埋め込み制限回避オプション設定）
     function onYouTubeIframeAPIReady() {
       log('YouTube API 読み込み完了');
       player = new YT.Player('yt-player', {
         height: '100%',
         width: '100%',
+        host: 'https://www.youtube-nocookie.com',
         playerVars: {
           'playsinline': 1,
           'autoplay': 1,
-          'controls': 1
+          'controls': 1,
+          'origin': 'https://www.youtube.com',
+          'enablejsapi': 1
         },
         events: {
           'onReady': () => {
             isPlayerReady = true;
             log('プレイヤー準備完了');
           },
-          'onError': (e) => {
-            log('再生エラー Code: ' + e.data);
-          }
+          'onError': onPlayerError
         }
       });
     }
 
-    // CORSプロキシを使用した安定検索処理
+    // エラー検知＆自動フォールバック処理
+    async function onPlayerError(e) {
+      log(`再生エラー検知 (Code: ${e.data}) -> 音声モードへ自動切替`);
+      
+      // 埋め込み禁止(101, 150, 153)の場合はHTML5オーディオに切り替え
+      document.getElementById('yt-player-container').style.display = 'none';
+      fallbackAudio.style.display = 'block';
+
+      if (currentVideoId) {
+        log(`音声ストリーム取得中: ${currentVideoId}`);
+        try {
+          const proxyUrl = `https://corsproxy.io/?${encodeURIComponent('https://pipedapi.kavin.rocks/streams/' + currentVideoId)}`;
+          const res = await fetch(proxyUrl);
+          const data = await res.json();
+          
+          if (data.audioStreams && data.audioStreams.length > 0) {
+            fallbackAudio.src = data.audioStreams[0].url;
+            await fallbackAudio.play();
+            log('音声ストリームでの再生に成功！');
+          } else {
+            log('再生失敗: 音声データが見つかりません');
+          }
+        } catch (err) {
+          log(`音声切替失敗: ${err.message}`);
+        }
+      }
+    }
+
+    // 検索処理
     async function searchYouTube() {
       const query = document.getElementById('search-input').value;
       if (!query) return;
@@ -222,7 +262,6 @@
       resultsDiv.innerHTML = '<p style="color: var(--text-sub);">検索中...</p>';
       log(`検索開始: "${query}"`);
 
-      // 安定しているプロキシ＆API組み合わせ
       const targetApi = `https://pipedapi.kavin.rocks/search?q=${encodeURIComponent(query)}&filter=all`;
       const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetApi)}`;
 
@@ -261,20 +300,27 @@
 
       } catch (err) {
         log(`検索失敗: ${err.message}`);
-        resultsDiv.innerHTML = `<p style="color: #ff5252;">検索エラーが発生しました。<br>画面下のログを確認してください。</p>`;
+        resultsDiv.innerHTML = `<p style="color: #ff5252;">検索エラーが発生しました。ログを確認してください。</p>`;
       }
     }
 
-    // 動画（音声）の再生
+    // 再生処理
     function playVideo(videoId, title) {
+      currentVideoId = videoId;
+      currentTitle = title;
       document.getElementById('player-title').textContent = title;
-      log(`再生要求: ${title} (${videoId})`);
+      log(`再生要求: ${title}`);
+
+      // 画面表示のリセット
+      document.getElementById('yt-player-container').style.display = 'block';
+      fallbackAudio.style.display = 'none';
+      fallbackAudio.pause();
 
       if (player && isPlayerReady) {
         player.loadVideoById(videoId);
-        log('再生コマンド送信完了');
       } else {
-        log('エラー: プレイヤーがまだ準備できていません');
+        log('プレイヤー未準備のため直通切り替え');
+        onPlayerError({ data: 153 });
       }
     }
   </script>

@@ -1,5 +1,10 @@
 {
   "name": "music-space-pro-mod",
   "version": "1.0.0",
-  "main": "index.html"
+  "main": "index.html",
+  "dependencies": {
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/ios": "^8.5.2"
+  }
 }

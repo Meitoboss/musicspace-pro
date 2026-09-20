@@ -1,0 +1,55 @@
+name: Build iOS App (.ipa)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-14
+
+    steps:
+      - name: ソースコードの取得
+        uses: actions/checkout@v4
+
+      - name: Node.js のセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: パッケージのインストール
+        run: npm ci
+
+      - name: Capacitor Webアセット同期
+        run: npx cap copy ios
+
+      - name: CocoaPods のインストール
+        run: |
+          cd ios/App
+          pod install
+
+      - name: XcodeによるiOSアプリビルド (無署名)
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: IPAパッケージの作成
+        run: |
+          mkdir -p Payload
+          cp -R ios/App/build/Release-iphoneos/App.app Payload/
+          zip -r MusicSpacePro-unsigned.ipa Payload
+
+      - name: 成果物 (.ipa) のアップロード
+        uses: actions/upload-artifact@v4
+        with:
+          name: MusicSpacePro-iOS-IPA
+          path: MusicSpacePro-unsigned.ipa

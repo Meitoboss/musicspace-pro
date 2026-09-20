@@ -26,9 +26,22 @@ jobs:
       - name: Capacitor 同期 (iOS)
         run: npx cap sync ios
 
+      - name: CocoaPods のチェックと実行
+        run: |
+          cd ios/App
+          if [ -f "Podfile" ]; then
+            pod install
+          fi
+
       - name: XcodeによるiOSアプリビルド (無署名)
         run: |
-          xcodebuild -workspace ios/App/App.xcworkspace \
+          if [ -d "ios/App/App.xcworkspace" ]; then
+            TARGET_ARG="-workspace ios/App/App.xcworkspace"
+          else
+            TARGET_ARG="-project ios/App/App.xcodeproj"
+          fi
+          
+          xcodebuild $TARGET_ARG \
             -scheme App \
             -configuration Release \
             -sdk iphoneos \
@@ -40,7 +53,11 @@ jobs:
       - name: IPAパッケージの作成
         run: |
           mkdir -p Payload
-          cp -R ios/App/build/Release-iphoneos/App.app Payload/
+          if [ -d "ios/App/build/Release-iphoneos/App.app" ]; then
+            cp -R ios/App/build/Release-iphoneos/App.app Payload/
+          else
+            cp -R ~/Library/Developer/Xcode/DerivedData/App-*/Build/Products/Release-iphoneos/App.app Payload/
+          fi
           zip -r MusicSpacePro-unsigned.ipa Payload
 
       - name: 成果物 (.ipa) のアップロード

@@ -1,5 +1,10 @@
 {
-  "appId": "com.musicspace.app",
-  "appName": "music-space-pro-mod",
-  "webDir": "www"
+  "appId": "com.musicspace.pro",
+  "appName": "MusicSpace Pro",
+  "webDir": "www",
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
 }

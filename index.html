@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <!-- iOSアプリ化を見据えたビューポート設定 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>MusicSpacePro-mod</title>
+  <style>
+    /* ------------------------------
+       基本デザイン・レイアウト
+       ------------------------------ */
+    :root {
+      --bg-color: #121212;
+      --text-color: #ffffff;
+      --accent-color: #1db954;
+      --secondary-text: #b3b3b3;
+      --panel-bg: #181818;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent; /* iOSのタップハイライトを消す */
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ------------------------------
+       プレイヤー領域
+       ------------------------------ */
+    .player-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .artwork {
+      width: 250px;
+      height: 250px;
+      border-radius: 12px;
+      background-color: #282828;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      object-fit: cover;
+      margin-bottom: 30px;
+    }
+
+    .track-info {
+      text-align: center;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+
+    .track-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .track-artist {
+      font-size: 16px;
+      color: var(--secondary-text);
+    }
+
+    /* ------------------------------
+       コントロール部分
+       ------------------------------ */
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    button {
+      background: none;
+      border: none;
+      color: var(--text-color);
+      font-size: 28px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      transition: transform 0.1s, background-color 0.2s;
+    }
+
+    button:active {
+      transform: scale(0.9);
+      background-color: rgba(255,255,255,0.1);
+    }
+
+    .play-btn {
+      font-size: 36px;
+      background-color: var(--accent-color);
+      color: #000;
+      width: 64px;
+      height: 64px;
+    }
+
+    .play-btn:active {
+      background-color: #1aa34a;
+    }
+
+    /* プログレスバー */
+    .progress-container {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--secondary-text);
+    }
+
+    .progress-bar {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 4px;
+      background: #535353;
+      border-radius: 2px;
+      outline: none;
+    }
+
+    .progress-bar::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--text-color);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="player-container">
+    <!-- アートワーク画像 -->
+    <img id="artwork" class="artwork" src="https://via.placeholder.com/250x250/282828/ffffff?text=No+Image" alt="Artwork">
+    
+    <!-- 曲情報 -->
+    <div class="track-info">
+      <div id="track-title" class="track-title">再生待ち</div>
+      <div id="track-artist" class="track-artist">アーティスト未定</div>
+    </div>
+
+    <!-- シークバー -->
+    <div class="progress-container">
+      <span id="time-current">0:00</span>
+      <input type="range" id="progress-bar" class="progress-bar" value="0" min="0" max="100" step="1">
+      <span id="time-duration">0:00</span>
+    </div>
+
+    <!-- 操作ボタン -->
+    <div class="controls">
+      <button id="btn-prev">⏮</button>
+      <button id="btn-play" class="play-btn">▶</button>
+      <button id="btn-next">⏭</button>
+    </div>
+  </div>
+
+  <!-- 再生用 Audio タグ (YouTubeもこれに流し込む) -->
+  <audio id="local-audio" preload="auto"></audio>
+
+  <script>
+    /* =========================================
+       1. 初期設定と変数
+       ========================================= */
+    const audio = document.getElementById('local-audio');
+    const playBtn = document.getElementById('btn-play');
+    const prevBtn = document.getElementById('btn-prev');
+    const nextBtn = document.getElementById('btn-next');
+    const progressBar = document.getElementById('progress-bar');
+    const timeCurrent = document.getElementById('time-current');
+    const timeDuration = document.getElementById('time-duration');
+    
+    const uiTitle = document.getElementById('track-title');
+    const uiArtist = document.getElementById('track-artist');
+    const uiArtwork = document.getElementById('artwork');
+
+    let isPlaying = false;
+    let audioCtx = null; // iOS用 Web Audio API
+
+    // デモ用プレイリスト
+    let currentTrackIndex = 0;
+    const playlist = [
+      {
+        id: "local-1",
+        type: "local",
+        title: "ローカルテスト曲",
+        artist: "Test Artist 1",
+        url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        thumb: "https://via.placeholder.com/250x250/1db954/000000?text=Track+1"
+      },
+      {
+        id: "dQw4w9WgXcQ", // YouTube Video ID
+        type: "youtube",
+        title: "YouTubeテスト曲",
+        artist: "Rick Astley",
+        url: "", // 後でAPIから取得
+        thumb: "https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg"
+      }
+    ];
+
+    /* =========================================
+       2. Web Audio API 制約解除 (iOS対策)
+       ========================================= */
+    function initWebAudio() {
+      if (audioCtx) {
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        return;
+      }
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+    }
+
+    // 画面タップ時に制約解除
+    document.body.addEventListener('touchstart', initWebAudio, { once: true });
+    document.body.addEventListener('click', initWebAudio, { once: true });
+
+    /* =========================================
+       3. YouTube音声URLの取得 (Invidious API)
+       ========================================= */
+    async function getYouTubeAudioUrl(videoId) {
+      try {
+        uiTitle.innerText = "読込中...";
+        // Invidious APIを利用して音声のみのURLを抽出
+        const res = await fetch(`https://invidious.nerdvpn.de/api/v1/videos/${videoId}`);
+        const data = await res.json();
+        
+        // mp4オーディオまたはwebmオーディオを探す
+        const audioFormat = data.adaptiveFormats.find(f => f.type && (f.type.includes('audio/mp4') || f.type.includes('audio/webm')));
+        return audioFormat ? audioFormat.url : null;
+      } catch (e) {
+        console.error('YouTube音声URLの取得に失敗:', e);
+        return null;
+      }
+    }
+
+    /* =========================================
+       4. 再生処理メイン
+       ========================================= */
+    async function loadAndPlayTrack(index) {
+      if (index < 0 || index >= playlist.length) return;
+      currentTrackIndex = index;
+      const track = playlist[index];
+
+      // UIの更新
+      uiTitle.innerText = track.title;
+      uiArtist.innerText = track.artist;
+      uiArtwork.src = track.thumb;
+
+      // ロック画面(Media Session)の更新
+      updateMediaSession(track);
+
+      // YouTubeかローカルかで分岐
+      if (track.type === 'youtube') {
+        const streamUrl = await getYouTubeAudioUrl(track.id);
+        if (streamUrl) {
+          audio.src = streamUrl;
+          uiTitle.innerText = track.title; // 読込中表記を戻す
+        } else {
+          alert('YouTubeの再生準備に失敗しました。');
+          return;
+        }
+      } else {
+        audio.src = track.url;
+      }
+
+      audio.load();
+      playTrack();
+    }
+
+    function playTrack() {
+      audio.play().then(() => {
+        isPlaying = true;
+        playBtn.innerText = "⏸";
+      }).catch(e => console.log("自動再生がブロックされました", e));
+    }
+
+    function pauseTrack() {
+      audio.pause();
+      isPlaying = false;
+      playBtn.innerText = "▶";
+    }
+
+    function togglePlay() {
+      if (isPlaying) {
+        pauseTrack();
+      } else {
+        if (!audio.src) {
+          loadAndPlayTrack(currentTrackIndex); // 初回再生
+        } else {
+          playTrack();
+        }
+      }
+    }
+
+    function playNext() {
+      let nextIndex = currentTrackIndex + 1;
+      if (nextIndex >= playlist.length) nextIndex = 0; // ループ
+      loadAndPlayTrack(nextIndex);
+    }
+
+    function playPrev() {
+      let prevIndex = currentTrackIndex - 1;
+      if (prevIndex < 0) prevIndex = playlist.length - 1;
+      loadAndPlayTrack(prevIndex);
+    }
+
+    /* =========================================
+       5. Media Session API (iOSロック画面対応)
+       ========================================= */
+    function updateMediaSession(track) {
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: track.title,
+          artist: track.artist,
+          album: "MusicSpacePro-mod",
+          artwork: [
+            { src: track.thumb, sizes: '512x512', type: 'image/jpeg' }
+          ]
+        });
+
+        navigator.mediaSession.setActionHandler('play', () => playTrack());
+        navigator.mediaSession.setActionHandler('pause', () => pauseTrack());
+        navigator.mediaSession.setActionHandler('previoustrack', () => playPrev());
+        navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
+      }
+    }
+
+    /* =========================================
+       6. シークバーと時間の更新
+       ========================================= */
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return "0:00";
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    audio.addEventListener('timeupdate', () => {
+      if (audio.duration) {
+        const progressPercent = (audio.currentTime / audio.duration) * 100;
+        progressBar.value = progressPercent;
+        timeCurrent.innerText = formatTime(audio.currentTime);
+      }
+    });
+
+    audio.addEventListener('loadedmetadata', () => {
+      timeDuration.innerText = formatTime(audio.duration);
+    });
+
+    audio.addEventListener('ended', () => {
+      playNext(); // 終わったら次の曲へ
+    });
+
+    progressBar.addEventListener('input', (e) => {
+      if (audio.duration) {
+        const seekTime = (e.target.value / 100) * audio.duration;
+        audio.currentTime = seekTime;
+      }
+    });
+
+    /* =========================================
+       7. イベントリスナー登録
+       ========================================= */
+    playBtn.addEventListener('click', () => {
+      initWebAudio(); // iOS対策
+      togglePlay();
+    });
+    nextBtn.addEventListener('click', playNext);
+    prevBtn.addEventListener('click', playPrev);
+
+    // 初期表示設定
+    uiTitle.innerText = playlist[0].title;
+    uiArtist.innerText = playlist[0].artist;
+    uiArtwork.src = playlist[0].thumb;
+
+  </script>
+</body>
+</html>

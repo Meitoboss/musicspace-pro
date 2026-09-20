@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>MusicSpace Pro</title>
-  
+
   <script src="capacitor.js"></script>
 
   <!-- バックグラウンド停止防止スクリプト -->
@@ -158,7 +158,7 @@
       font-size: 11px;
       padding: 6px;
       border-radius: 6px;
-      max-height: 40px;
+      max-height: 50px;
       overflow-y: auto;
       white-space: pre-wrap;
       word-break: break-all;
@@ -180,14 +180,16 @@
   <div class="player-bar">
     <div id="player-title" class="track-title">曲を選択してください</div>
     
-    <!-- 音声再生用の標準HTML5プレイヤー -->
+    <!-- バックグラウンド再生に対応した標準 HTML5 Audio タグ -->
     <audio id="audio-player" controls playsinline></audio>
 
-    <div id="debug-log">ログ: ytmp3.gl 連携モード起動完了</div>
+    <div id="debug-log">ログ: 私設 yt-dlp API (Render) 連携モード起動</div>
   </div>
 
   <script>
     const YOUTUBE_API_KEY = 'AIzaSyD0qeDWYwSK-S3g3-ESyGhi-UUziAjZo9g';
+    // Renderで作成された実際のAPIサーバーURL
+    const RENDER_SERVER_URL = 'https://musicspace-pro.onrender.com';
 
     function log(msg) {
       const logDiv = document.getElementById('debug-log');
@@ -195,26 +197,7 @@
       console.log(msg);
     }
 
-    // HTTPリクエストラッパー（CapacitorNative通信 / fetch自動切替）
-    async function httpPost(url, headers, bodyData) {
-      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorHttp) {
-        const res = await window.Capacitor.Plugins.CapacitorHttp.post({
-          url: url,
-          headers: headers,
-          data: bodyData
-        });
-        return res.data;
-      } else {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: headers,
-          body: bodyData
-        });
-        return await res.json();
-      }
-    }
-
-    // YouTube Data API を使用した検索
+    // YouTube Data API で曲を検索
     async function searchMusic() {
       const query = document.getElementById('search-input').value;
       if (!query) return;
@@ -254,7 +237,7 @@
             </div>
           `;
 
-          trackItem.onclick = () => loadAndPlayMp3(videoId, title, channelTitle);
+          trackItem.onclick = () => loadAndPlayAudio(videoId, title, channelTitle);
           resultsDiv.appendChild(trackItem);
         });
 
@@ -264,54 +247,34 @@
       }
     }
 
-    // ytmp3.gl のAPI経由でMP3の直URLを取得して再生
-    async function loadAndPlayMp3(videoId, title, artist) {
+    // 自前Renderサーバー(yt-dlp)からm4a直URLを取得して再生
+    async function loadAndPlayAudio(videoId, title, artist) {
       document.getElementById('player-title').textContent = `${title} (${artist})`;
-      log(`音源変換リクエスト送信中: ${videoId}`);
+      log(`Renderサーバー解析開始: ${videoId}`);
 
       const audioPlayer = document.getElementById('audio-player');
       audioPlayer.pause();
       audioPlayer.src = '';
 
       try {
-        const targetUrl = `https://www.youtube.com/watch?v=${videoId}`;
-        
-        // ytmp3.gl APIリクエスト
-        const responseData = await httpPost(
-          'https://ytmp3.gl/api/ajax/search',
-          {
-            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-            'X-Requested-With': 'XMLHttpRequest'
-          },
-          `query=${encodeURIComponent(targetUrl)}`
-        );
+        // 自前Render APIを呼び出し
+        const response = await fetch(`${RENDER_SERVER_URL}/audio?v=${videoId}`);
+        if (!response.ok) throw new Error('サーバー応答エラー');
 
-        let mp3Url = null;
+        const data = await response.json();
 
-        if (responseData && responseData.dlink) {
-          mp3Url = responseData.dlink;
-        } else if (responseData && responseData.links && responseData.links.mp3) {
-          // レスポンス構造の代替パターン解析
-          const mp3Keys = Object.keys(responseData.links.mp3);
-          if (mp3Keys.length > 0) {
-            mp3Url = responseData.links.mp3[mp3Keys[0]].k || responseData.links.mp3[mp3Keys[0]].url;
-          }
+        if (data.status === 'ok' && data.url) {
+          log('m4a音源URLの抽出成功！');
+          audioPlayer.src = data.url;
+          await audioPlayer.play();
+          log('再生を開始しました（バックグラウンド動作可能）');
+        } else {
+          throw new Error(data.message || '音源URLの取得失敗');
         }
-
-        if (!mp3Url) {
-          throw new Error('MP3の取得URLが見つかりませんでした');
-        }
-
-        log(`MP3 URL取得成功: ${mp3Url.substring(0, 30)}...`);
-
-        // HTML5 Audioタグにセットして再生
-        audioPlayer.src = mp3Url;
-        await audioPlayer.play();
-        log('MP3音声の再生を開始しました');
 
       } catch (err) {
-        log(`変換・再生エラー: ${err.message}`);
-        alert(`音源の取得に失敗しました: ${err.message}`);
+        log(`再生エラー: ${err.message}`);
+        alert(`音源の取得に失敗しました: ${err.message}\n※Render無料版がスリープ状態の場合、起動に約30秒かかります。再度お試しください。`);
       }
     }
   </script>

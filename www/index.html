@@ -163,7 +163,7 @@
   <div class="player-bar">
     <div id="player-title" class="track-title">曲を選択してください</div>
     
-    <!-- 音声プレイヤー（フル再生・バックグラウンド再生対応） -->
+    <!-- 音声プレイヤー -->
     <audio id="audio-player" controls style="width: 100%;"></audio>
 
     <div id="debug-log">ログ: システム準備完了</div>
@@ -172,13 +172,17 @@
   <script>
     const audioPlayer = document.getElementById('audio-player');
 
-    // 安定稼働している YouTube 音声ストリームプロキシ群
-    const YOUTUBE_SEARCH_SERVERS = [
+    // 高信頼性 Invidious サーバー群
+    const INVIDIOUS_SERVERS = [
       'https://inv.tux.pizza',
       'https://invidious.nerdvpn.de',
       'https://yewtu.be',
       'https://invidious.drgns.space'
     ];
+
+    let currentTrackCandidates = [];
+    let currentServerIndex = 0;
+    let fallbackPreviewUrl = '';
 
     function log(msg) {
       const logDiv = document.getElementById('debug-log');
@@ -186,7 +190,14 @@
       console.log(msg);
     }
 
-    // 高速・高精度検索（iTunes APIを使用）
+    // プレイヤー要素本体のエラー検知ハンドラ
+    audioPlayer.onerror = () => {
+      const err = audioPlayer.error;
+      log(`再生バーエラー検知 (Code: ${err ? err.code : 'unknown'}) -> 別サーバーへ切替`);
+      tryNextServerOrFallback();
+    };
+
+    // 検索処理 (iTunes API)
     async function searchMusic() {
       const query = document.getElementById('search-input').value;
       if (!query) return;
@@ -224,7 +235,6 @@
             </div>
           `;
 
-          // タップでフル音源取得へ
           trackItem.onclick = () => playFullTrack(item.trackName, item.artistName, item.previewUrl);
           resultsDiv.appendChild(trackItem);
         });
@@ -235,59 +245,83 @@
       }
     }
 
-    // フル音源の取得および再生
-    async function playFullTrack(title, artist, fallbackPreviewUrl) {
+    // フル音源の再生開始
+    async function playFullTrack(title, artist, previewUrl) {
       document.getElementById('player-title').textContent = `${title} - ${artist}`;
-      log(`フル音源取得中: "${title} ${artist}"`);
+      log(`フル音源検索: "${title} ${artist}"`);
+      fallbackPreviewUrl = previewUrl;
 
-      // iOSオーディオ制限の即時解除（ダミー再生）
+      // iOSオーディオ制限の即時解除（ダミー音再生）
       audioPlayer.pause();
       audioPlayer.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
       audioPlayer.play().catch(() => {});
 
-      let fullAudioFound = false;
+      let videoId = null;
 
-      // YouTubeからフル音源（.m4a / .webm ストリーム）を検索・取得
-      for (const server of YOUTUBE_SEARCH_SERVERS) {
+      // 1. YouTube VideoID の特定
+      for (const server of INVIDIOUS_SERVERS) {
         try {
-          log(`ストリーム検索: ${server}`);
           const searchQuery = `${title} ${artist}`;
-          const searchRes = await fetch(`${server}/api/v1/search?q=${encodeURIComponent(searchQuery)}&type=video`);
-          if (!searchRes.ok) continue;
-
-          const videos = await searchRes.json();
-          if (!Array.isArray(videos) || videos.length === 0) continue;
-
-          const videoId = videos[0].videoId;
-          log(`動画ID特定: ${videoId} -> 音声リンク抽出中`);
-
-          const videoInfoRes = await fetch(`${server}/api/v1/videos/${videoId}`);
-          if (!videoInfoRes.ok) continue;
-
-          const videoInfo = await videoInfoRes.json();
-          const adaptiveFormats = videoInfo.adaptiveFormats || [];
-
-          // 音声ストリーム（m4a / webm）の抽出
-          const audioFormat = adaptiveFormats.find(f => f.type && f.type.includes('audio'));
-
-          if (audioFormat && audioFormat.url) {
-            log('フル音声ストリーム取得成功！再生を開始します');
-            audioPlayer.src = audioFormat.url;
-            await audioPlayer.play();
-            fullAudioFound = true;
-            break;
+          const res = await fetch(`${server}/api/v1/search?q=${encodeURIComponent(searchQuery)}&type=video`);
+          if (res.ok) {
+            const videos = await res.json();
+            if (Array.isArray(videos) && videos.length > 0 && videos[0].videoId) {
+              videoId = videos[0].videoId;
+              log(`VideoID特定: ${videoId}`);
+              break;
+            }
           }
         } catch (e) {
-          log(`サーバーエラー (${server}): ${e.message}`);
+          // 次のサーバーへ
         }
       }
 
-      // 万が一フル音源が全サーバーで取得できなかった場合は30秒試聴用へ安全フォールバック
-      if (!fullAudioFound) {
-        log('フル音源の取得に失敗したため、バックアップ音源で再生します');
-        audioPlayer.src = fallbackPreviewUrl;
-        await audioPlayer.play();
+      if (!videoId) {
+        log('YouTubeでのID特定に失敗 -> プレビュー再生へ');
+        playFallback();
+        return;
       }
+
+      // 2. iOS互換 m4a プロキシストリーム候補URLリストの生成
+      currentTrackCandidates = INVIDIOUS_SERVERS.map(server => `${server}/latest_version?id=${videoId}&itag=140&local=true`);
+      currentServerIndex = 0;
+
+      // 試行開始
+      tryCandidateStream();
+    }
+
+    function tryCandidateStream() {
+      if (currentServerIndex < currentTrackCandidates.length) {
+        const streamUrl = currentTrackCandidates[currentServerIndex];
+        log(`再生試行 [サーバー${currentServerIndex + 1}]: ${streamUrl}`);
+        audioPlayer.src = streamUrl;
+        audioPlayer.play().then(() => {
+          log('再生スタート！');
+        }).catch(err => {
+          log(`JS再生エラー: ${err.message}`);
+          tryNextServerOrFallback();
+        });
+      } else {
+        log('全フル音源サーバーの試行完了 -> プレビュー再生へ');
+        playFallback();
+      }
+    }
+
+    function tryNextServerOrFallback() {
+      currentServerIndex++;
+      if (currentServerIndex < currentTrackCandidates.length) {
+        tryCandidateStream();
+      } else {
+        log('全サーバー失敗 -> プレビュー再生へ自動移行');
+        playFallback();
+      }
+    }
+
+    function playFallback() {
+      if (!fallbackPreviewUrl) return;
+      log('バックアップ音源（30秒）で再生開始');
+      audioPlayer.src = fallbackPreviewUrl;
+      audioPlayer.play().catch(e => log(`プレビュー再生エラー: ${e.message}`));
     }
   </script>
 </body>

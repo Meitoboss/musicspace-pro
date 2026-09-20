@@ -173,20 +173,6 @@
       overflow: hidden;
     }
 
-    .play-btn {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: var(--accent-color);
-      border: none;
-      color: #fff;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-
     .file-input-label {
       display: block;
       text-align: center;
@@ -210,10 +196,10 @@
 
   <!-- YouTube 検索セクション -->
   <div id="youtube-section" class="content-section active">
-    <div class="search-box">
+    <form class="search-box" onsubmit="event.preventDefault(); searchYouTube();">
       <input type="text" id="search-input" placeholder="曲名やアーティスト名を入力...">
-      <button class="btn" onclick="searchYouTube()">検索</button>
-    </div>
+      <button type="submit" class="btn">検索</button>
+    </form>
     <div id="search-results"></div>
   </div>
 
@@ -240,6 +226,17 @@
     const audio = document.getElementById('audio-player');
     const playerTitle = document.getElementById('player-title');
 
+    // 予備のInvidiousサーバーリスト（自動フォールバック対応）
+    const INVIDIOUS_INSTANCES = [
+      'https://inv.tux.pizza',
+      'https://invidious.drgns.space',
+      'https://invidious.privacydev.net',
+      'https://vid.puffyan.us',
+      'https://invidious.projectsegfau.lt'
+    ];
+
+    let currentInstance = INVIDIOUS_INSTANCES[0];
+
     // タブ切り替え
     function switchTab(tab) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -254,7 +251,7 @@
       }
     }
 
-    // YouTube (Invidious API) 検索
+    // YouTube 検索（複数サーバー自動切り替え付き）
     async function searchYouTube() {
       const query = document.getElementById('search-input').value;
       if (!query) return;
@@ -262,38 +259,63 @@
       const resultsDiv = document.getElementById('search-results');
       resultsDiv.innerHTML = '<p style="color: var(--text-sub);">検索中...</p>';
 
-      try {
-        const response = await fetch(`https://invidious.nerdvpn.de/api/v1/search?q=${encodeURIComponent(query)}&type=video`);
-        const videos = await response.json();
+      let success = false;
 
-        resultsDiv.innerHTML = '';
-        videos.forEach(video => {
-          const item = document.createElement('div');
-          item.className = 'track-item';
-          item.innerHTML = `
-            <img class="track-thumb" src="${video.videoThumbnails?.[0]?.url || ''}" alt="">
-            <div class="track-info">
-              <div class="track-title">${video.title}</div>
-              <div class="track-artist">${video.author}</div>
-            </div>
-          `;
-          item.onclick = () => playYouTubeVideo(video.videoId, video.title, video.author);
-          resultsDiv.appendChild(item);
-        });
-      } catch (err) {
-        resultsDiv.innerHTML = '<p style="color: #ff5252;">検索エラーが発生しました。</p>';
+      for (const instance of INVIDIOUS_INSTANCES) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒タイムアウト
+
+          const response = await fetch(`${instance}/api/v1/search?q=${encodeURIComponent(query)}&type=video`, {
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+
+          if (!response.ok) continue;
+          
+          const videos = await response.json();
+          currentInstance = instance; // 成功したサーバーを保持
+
+          resultsDiv.innerHTML = '';
+          if (!videos || videos.length === 0) {
+            resultsDiv.innerHTML = '<p style="color: var(--text-sub);">該当する曲が見つかりませんでした。</p>';
+            return;
+          }
+
+          videos.forEach(video => {
+            const item = document.createElement('div');
+            item.className = 'track-item';
+            item.innerHTML = `
+              <img class="track-thumb" src="${video.videoThumbnails?.[0]?.url || ''}" alt="">
+              <div class="track-info">
+                <div class="track-title">${video.title}</div>
+                <div class="track-artist">${video.author}</div>
+              </div>
+            `;
+            item.onclick = () => playYouTubeVideo(video.videoId, video.title, video.author);
+            resultsDiv.appendChild(item);
+          });
+
+          success = true;
+          break; // 成功したらループを抜ける
+        } catch (err) {
+          console.warn(`Instance failed: ${instance}`, err);
+        }
+      }
+
+      if (!success) {
+        resultsDiv.innerHTML = '<p style="color: #ff5252;">検索サーバーの接続に失敗しました。少し時間をおいて再試行してください。</p>';
       }
     }
 
-    // YouTube音声再生 & バックグラウンド（MediaSession）設定
+    // YouTube音声再生
     function playYouTubeVideo(videoId, title, artist) {
-      const audioUrl = `https://invidious.nerdvpn.de/latest_version?id=${videoId}&italic=0`;
+      const audioUrl = `${currentInstance}/latest_version?id=${videoId}&italic=0`;
       audio.src = audioUrl;
       audio.play();
 
       playerTitle.textContent = title;
 
-      // ロック画面・通知センターコントロール連携 (Media Session API)
       if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: title,

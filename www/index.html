@@ -26,11 +26,8 @@
 }.search-bar-container { position: relative; margin-bottom: 15px; width: 100%; max-width: 500px; display: flex; gap: 10px; }.search-input { flex: 1 1 0%; padding: 14px 14px 14px 48px; border-radius: 50px; border: medium; background-color: var(--bg-input); color: var(--text-main); outline: medium; font-size: 14px; }.search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-sub); }.btn-search-trigger { background-color: var(--accent-color); color: rgb(0, 0, 0); border: medium; padding: 0px 24px; border-radius: 50px; font-weight: 700; cursor: pointer; font-size: 14px; white-space: nowrap; flex-shrink: 0; }.search-history-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 30px; }.history-tag { background-color: var(--bg-card); color: var(--text-sub); padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; border: 1px solid var(--border-card); }.history-tag:hover { color: var(--text-main); border-color: var(--accent-color); }.library-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; max-width: 800px; }.btn-add-playlist { background-color: var(--accent-color); color: rgb(0, 0, 0); border: medium; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }.playlist-list { display: flex; flex-direction: column; gap: 8px; }.playlist-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background-color: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-card); cursor: pointer; }.playlist-item:hover { background-color: var(--bg-card-hover); }.playlist-item-img { width: 48px; height: 48px; border-radius: 6px; background-size: cover; background-position: center center; background-color: rgb(36, 41, 47); display: flex; justify-content: center; align-items: center; margin-right: 14px; }.playlist-detail-header { border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px; }.btn-back { background: none; border: medium; color: var(--text-sub); cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; margin-bottom: 16px; }.title-edit-group { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }.btn-edit-title { background: none; border: medium; color: var(--text-sub); cursor: pointer; padding: 4px; }.btn-edit-title:hover { color: var(--accent-color); }.btn-shuffle-play { background-color: var(--accent-color); color: rgb(0, 0, 0); border: medium; padding: 10px 24px; border-radius: 50px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; }.track-row { display: flex; align-items: center; padding: 10px 16px; background: var(--bg-card); border-bottom: 1px solid var(--border-color); gap: 16px; }.track-row:hover { background: var(--bg-card-hover); }.sortable-ghost { opacity: 0.4; background-color: var(--bg-card-hover); }.upload-area { border: 2px dashed var(--border-card); background-color: rgba(36, 41, 47, 0.5); border-radius: 16px; padding: 40px; text-align: center; cursor: pointer; margin-bottom: 30px; }.upload-area:hover { border-color: var(--accent-color); }.settings-panel { background-color: var(--bg-card); border-radius: 12px; padding: 10px 24px; margin-bottom: 30px; }.settings-row { display: flex; justify-content: space-between; align-items: center; padding: 20px 0px; border-bottom: 1px solid var(--border-color); }.settings-row:last-child { border-bottom: medium; }.switch { position: relative; display: inline-block; width: 50px; height: 26px; }.switch input { opacity: 0; width: 0px; height: 0px; }.slider { position: absolute; cursor: pointer; inset: 0px; background-color: rgb(204, 204, 204); transition: 0.3s; border-radius: 34px; }.slider::before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: 0.3s; border-radius: 50%; }input:checked + .slider { background-color: var(--accent-color); }input:checked + .slider::before { transform: translateX(24px); }.settings-select { background-color: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; outline: medium; }.app-version-info { text-align: center; color: var(--text-sub); font-size: 12px; margin-top: 40px; padding-bottom: 20px; }.player-wrapper { position: fixed; bottom: 0px; left: 0px; width: 100%; height: 72px; background-color: rgba(11, 12, 16, 0.95); backdrop-filter: blur(10px); border-top: 1px solid var(--border-color); z-index: 999; transition: height 0.4s cubic-bezier(0.25, 1, 0.5, 1); overflow: hidden; }.player-wrapper.expanded { height: 100vh; background: radial-gradient(circle, rgb(17, 27, 14) 0%, rgb(5, 7, 10) 100%); }.player-bar { width: 100%; height: 72px; display: flex; justify-content: space-between; align-items: center; padding: 0px 20px; position: relative; z-index: 2; cursor: pointer; }.player-wrapper.expanded .player-bar { display: none; }.player-now-playing-info { flex: 1 1 0%; display: flex; flex-direction: column; justify-content: center; overflow: hidden; pointer-events: none; }.player-now-playing-info h5 { font-size: 15px; font-weight: 700; color: rgb(255, 255, 255); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0px; }.mini-btn-play { background: none; border: medium; color: rgb(255, 255, 255); display: flex; align-items: center; justify-content: center; padding: 10px; cursor: pointer; pointer-events: auto; }.mini-btn-play i { width: 28px; height: 28px; fill: currentcolor; }.mini-progress-track { position: absolute; bottom: 0px; left: 0px; width: 100%; height: 6px; background: none; z-index: 10; cursor: pointer; }.mini-progress-current { height: 100%; width: 0%; background-color: var(--accent-color); transition: width 0.1s linear; pointer-events: none; }.player-expanded-container { display: none; flex-direction: column; align-items: center; width: 100%; height: 100vh; padding: 40px 24px; box-sizing: border-box; position: relative; z-index: 2; }.player-wrapper.expanded .player-expanded-container { display: flex; }.expanded-header { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 450px; margin-bottom: 2vh; }.btn-collapse-player { background: none; border: medium; color: rgb(255, 255, 255); cursor: pointer; padding: 10px; }.expanded-artwork { width: 100%; aspect-ratio: 1 / 1; max-height: 40vh; border-radius: 16px; background-size: cover; background-position: center center; margin-bottom: 4vh; box-shadow: rgba(0, 0, 0, 0.6) 0px 10px 40px; }.expanded-info { text-align: center; width: 100%; margin-bottom: 4vh; }.expanded-info h3 { font-size: 24px; font-weight: 800; margin-bottom: 8px; color: rgb(255, 255, 255); }.expanded-info p { font-size: 16px; color: rgb(143, 148, 153); }.expanded-controls-zone { width: 100%; max-width: 450px; display: flex; flex-direction: column; gap: 24px; }.progress-container { display: flex; align-items: center; gap: 12px; width: 100%; font-size: 12px; color: rgb(143, 148, 153); }.progress-bar-hit-area { flex: 1 1 0%; padding: 12px 0px; margin: -12px 0px; cursor: pointer; display: flex; align-items: center; touch-action: none; }.progress-bar { width: 100%; height: 6px; background-color: rgb(33, 38, 45); border-radius: 3px; position: relative; pointer-events: none; }.progress-current { width: 0%; height: 100%; background-color: var(--accent-color); border-radius: 3px; pointer-events: none; }.control-buttons { display: flex; justify-content: space-between; align-items: center; padding: 0px 10px; }.btn-play { background-color: rgb(255, 255, 255); color: rgb(0, 0, 0); border: medium; width: 64px; height: 64px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; }.btn-play i { fill: rgb(0, 0, 0); }.btn-control, .btn-toggle { background: none; border: medium; color: rgb(179, 179, 179); cursor: pointer; }.btn-toggle.active-all { color: var(--accent-color); position: relative; }.btn-toggle.active-all::after { content: "•"; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); font-size: 14px; }.btn-toggle.active-one { color: var(--accent-color); position: relative; }.btn-toggle.active-one::after { content: "1"; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: bold; }.modal-overlay { position: fixed; top: 0px; left: 0px; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; }.modal-overlay.active { display: flex; }.modal-content { background: var(--bg-card); border: 1px solid var(--border-card); width: 100%; max-width: 400px; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }.modal-selector-item { padding: 12px; background: var(--bg-main); border-radius: 6px; cursor: pointer; font-weight: 600; text-align: left; border: medium; color: rgb(255, 255, 255); width: 100%; }.modal-selector-item:hover { background: var(--accent-color); color: rgb(0, 0, 0); }</style></head>
 <body>
 
-<div id="yt-player-container" style="position: fixed; top: -9999px; left: -9999px; width: 300px; height: 300px; opacity: 0.01; pointer-events: none; z-index: -1;">
-    <iframe id="yt-hidden-player" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" playsinline webkit-playsinline width="300" height="300" src="about:blank"></iframe>
-</div>
-<audio id="local-audio-1" class="hidden" playsinline webkit-playsinline></audio>
-<audio id="local-audio-2" class="hidden" playsinline webkit-playsinline></audio>
+<audio id="local-audio-1" style="display:none;" playsinline webkit-playsinline></audio>
+<audio id="local-audio-2" style="display:none;" playsinline webkit-playsinline></audio>
 
 <button class="btn-menu-trigger" id="openMenuBtn"><i data-lucide="menu"></i></button>
 
@@ -142,7 +139,7 @@
 
             <div class="app-version-info">
                 <p style="font-weight: bold; margin-bottom: 4px;">Music space - Pro Edition</p>
-                <p>Version 1.0.0 beta</p>
+                <p>Version 1.0.0 beta (yt-dlp Integrated)</p>
             </div>
         </div>
     </div>
@@ -242,7 +239,6 @@
     let currentPlaybackRate = 1.0;
     let sleepTimerId = null;
 
-    let activePlayer = null; 
     const localAudio1 = document.getElementById('local-audio-1');
     const localAudio2 = document.getElementById('local-audio-2');
     let currentLocalAudio = localAudio1;
@@ -252,49 +248,13 @@
     let progressTimer = null;
     let currentTrackData = null;
     let isPlaying = false; 
-    let ytCurrentTime = 0;
-    let ytDuration = 0;
     let isUserSeeking = false;
     
     let sortableDetail = null;
-
     let wakeLock = null;
     let lastTapTime = 0;
 
-    function sendYtCommand(func, args = []) {
-        const iframe = document.getElementById('yt-hidden-player');
-        if (iframe && iframe.contentWindow) {
-            iframe.contentWindow.postMessage(JSON.stringify({
-                'event': 'command',
-                'func': func,
-                'args': args
-            }), '*');
-        }
-    }
-
-    window.addEventListener('message', (event) => {
-        try {
-            const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-            if (data && data.info) {
-                if (typeof data.info.currentTime === 'number' && !isUserSeeking) {
-                    ytCurrentTime = data.info.currentTime;
-                }
-                if (typeof data.info.duration === 'number' && data.info.duration > 0) {
-                    ytDuration = data.info.duration;
-                }
-                if (data.info.playerState !== undefined && activePlayer === 'yt') {
-                    if (data.info.playerState === 1) {
-                        setPlayingState(true);
-                        sendYtCommand('setPlaybackQuality', ['tiny']);
-                        sendYtCommand('setSuggestedQuality', ['tiny']);
-                    }
-                    else if (data.info.playerState === 2) setPlayingState(false);
-                    else if (data.info.playerState === 0) handleTrackEnded();
-                }
-            }
-        } catch (e) {}
-    });
-
+    // トレンド曲の読み込み
     async function loadTrendingMusic() {
         const grid = document.getElementById('trendingGrid');
         try {
@@ -312,22 +272,38 @@
                 }));
                 displayGridResults(tracks, 'trendingGrid');
             } else {
-                grid.innerHTML = '<p style="color:#ff5c5c; font-size:14px;">トレンド情報を取得できませんでした。</p>';
+                // APIが制限されている場合はyt-dlpバックエンドの代替検索/トレンドを取得
+                fetchTrendingFromBackend();
             }
         } catch (e) {
-            console.error(e);
+            console.warn("YouTube Data API Error, fallback to backend:", e);
+            fetchTrendingFromBackend();
+        }
+    }
+
+    async function fetchTrendingFromBackend() {
+        const grid = document.getElementById('trendingGrid');
+        try {
+            const res = await fetch(`${RENDER_SERVER}/api/search?q=${encodeURIComponent('2026 J-POP トレンド')}`);
+            const data = await res.json();
+            if(data.results && data.results.length > 0) {
+                displayGridResults(data.results, 'trendingGrid');
+            } else {
+                grid.innerHTML = '<p style="color:#ff5c5c; font-size:14px;">トレンド情報を取得できませんでした。</p>';
+            }
+        } catch(err) {
             grid.innerHTML = '<p style="color:#ff5c5c; font-size:14px;">エラーによりトレンド情報を取得できませんでした。</p>';
         }
     }
 
+    // スリープタイマー設定
     document.getElementById('sleepTimerSelect').addEventListener('change', (e) => {
         if(sleepTimerId) clearTimeout(sleepTimerId);
         const minutes = parseInt(e.target.value);
         if(minutes > 0) {
             alert(`スリープタイマーを${minutes}分後に設定しました。`);
             sleepTimerId = setTimeout(() => {
-                if(activePlayer === 'yt') sendYtCommand('pauseVideo');
-                if(activePlayer === 'local') currentLocalAudio.pause();
+                if(currentLocalAudio) currentLocalAudio.pause();
                 setPlayingState(false);
                 alert("スリープタイマーが作動し、再生を停止しました。");
                 document.getElementById('sleepTimerSelect').value = "0"; 
@@ -369,9 +345,9 @@
     }
 
     [localAudio1, localAudio2].forEach(audioEl => {
-        audioEl.addEventListener('play', () => { if(currentLocalAudio === audioEl && activePlayer === 'local') setPlayingState(true); });
-        audioEl.addEventListener('pause', () => { if(currentLocalAudio === audioEl && activePlayer === 'local') setPlayingState(false); });
-        audioEl.addEventListener('ended', () => { if(currentLocalAudio === audioEl && activePlayer === 'local') handleTrackEnded(); });
+        audioEl.addEventListener('play', () => { if(currentLocalAudio === audioEl) setPlayingState(true); });
+        audioEl.addEventListener('pause', () => { if(currentLocalAudio === audioEl) setPlayingState(false); });
+        audioEl.addEventListener('ended', () => { if(currentLocalAudio === audioEl) handleTrackEnded(); });
     });
 
     function setPlayingState(playing) {
@@ -390,11 +366,7 @@
     function togglePlay(e) {
         if(e) e.stopPropagation();
         if(!currentTrackData) return;
-        if(activePlayer === 'yt') {
-            if (isPlaying) { sendYtCommand('pauseVideo'); setPlayingState(false); } 
-            else { sendYtCommand('playVideo'); setPlayingState(true); }
-        }
-        else if(activePlayer === 'local') { isPlaying ? currentLocalAudio.pause() : currentLocalAudio.play(); }
+        isPlaying ? currentLocalAudio.pause() : currentLocalAudio.play();
     }
 
     function handleTrackEnded() {
@@ -431,7 +403,10 @@
     document.querySelectorAll('.nextBtnClass').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); nextTrack(); }));
     document.querySelectorAll('.prevBtnClass').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); prevTrack(); }));
 
-    function playTrackObject(trackObj, updateQueue = true) {
+    // ==========================================
+    //  yt-dlp 音声ストリーム抽出・再生ロジック
+    // ==========================================
+    async function playTrackObject(trackObj, updateQueue = true) {
         currentTrackData = trackObj;
         
         document.querySelectorAll('.track-title-field').forEach(el => el.textContent = trackObj.title);
@@ -448,46 +423,66 @@
         }
         
         if (updateQueue) { currentQueue = [trackObj]; currentQueueIndex = 0; }
-        
+
         if (trackObj.type === 'local') {
-            sendYtCommand('pauseVideo');
-            activePlayer = 'local';
+            // ローカルファイルの再生処理
             const req = localFilesDB.transaction('local_tracks', 'readonly').objectStore('local_tracks').get(trackObj.id);
             req.onsuccess = (e) => {
                 const data = e.target.result; if(!data) return;
                 const url = URL.createObjectURL(data.blob);
-                const isCross = document.getElementById('setting-crossfade').checked;
-                
-                if(isCross && isPlaying && currentLocalAudio.currentTime > 0) {
-                    const nextAudio = currentLocalAudio === localAudio1 ? localAudio2 : localAudio1;
-                    nextAudio.src = url; nextAudio.playbackRate = currentPlaybackRate; 
-                    nextAudio.play().then(() => setPlayingState(true)).catch(console.error);
-                    const fadeOutAudio = currentLocalAudio; let vol = 1.0;
-                    const fadeInt = setInterval(() => { vol -= 0.05; if(vol <= 0) { clearInterval(fadeInt); fadeOutAudio.pause(); } else fadeOutAudio.volume = vol; }, 200);
-                    currentLocalAudio = nextAudio;
-                } else {
-                    currentLocalAudio.src = url; 
-                    currentLocalAudio.playbackRate = currentPlaybackRate; 
-                    currentLocalAudio.play().then(() => {
-                        setPlayingState(true);
-                    }).catch(err => {
-                        console.error("Local play error:", err);
-                    });
-                }
+                startAudioPlayback(url);
             };
         } else {
-            localAudio1.pause(); localAudio2.pause(); activePlayer = 'yt';
-            ytCurrentTime = 0; ytDuration = 0;
-            const iframe = document.getElementById('yt-hidden-player');
-            if (iframe) {
-                iframe.src = 'about:blank';
-                setTimeout(() => {
-                    iframe.src = `${RENDER_SERVER}/player?v=${trackObj.id}&vq=tiny`;
-                }, 50);
+            // YouTube / yt-dlp による音源抽出・ストリーム再生
+            try {
+                // UI表示を準備中に更新
+                document.querySelectorAll('.track-title-field').forEach(el => el.textContent = `[読み込み中...] ${trackObj.title}`);
+                
+                // Render上の yt-dlp サーバーからストリームURLを取得
+                const streamUrl = `${RENDER_SERVER}/api/stream?v=${encodeURIComponent(trackObj.id)}`;
+                
+                document.querySelectorAll('.track-title-field').forEach(el => el.textContent = trackObj.title);
+                startAudioPlayback(streamUrl);
+            } catch (err) {
+                console.error("yt-dlp 抽出再生エラー:", err);
+                alert("音源の抽出・再生に失敗しました。");
+                document.querySelectorAll('.track-title-field').forEach(el => el.textContent = trackObj.title);
             }
-            setPlayingState(true);
         }
         addToHistory(trackObj);
+    }
+
+    function startAudioPlayback(audioSourceUrl) {
+        const isCross = document.getElementById('setting-crossfade').checked;
+        
+        if(isCross && isPlaying && currentLocalAudio.currentTime > 0) {
+            const nextAudio = currentLocalAudio === localAudio1 ? localAudio2 : localAudio1;
+            nextAudio.src = audioSourceUrl; 
+            nextAudio.playbackRate = currentPlaybackRate; 
+            nextAudio.play().then(() => setPlayingState(true)).catch(console.error);
+            
+            const fadeOutAudio = currentLocalAudio; 
+            let vol = 1.0;
+            const fadeInt = setInterval(() => { 
+                vol -= 0.05; 
+                if(vol <= 0) { 
+                    clearInterval(fadeInt); 
+                    fadeOutAudio.pause(); 
+                } else {
+                    fadeOutAudio.volume = vol; 
+                }
+            }, 200);
+            
+            currentLocalAudio = nextAudio;
+        } else {
+            currentLocalAudio.src = audioSourceUrl; 
+            currentLocalAudio.playbackRate = currentPlaybackRate; 
+            currentLocalAudio.play().then(() => {
+                setPlayingState(true);
+            }).catch(err => {
+                console.error("Audio play error:", err);
+            });
+        }
     }
 
     function playTrackIndex(idx) { if(idx >= 0 && idx < currentQueue.length) playTrackObject(currentQueue[idx], false); }
@@ -513,23 +508,19 @@
     document.getElementById('speedSlider').addEventListener('input', (e) => {
         currentPlaybackRate = parseFloat(e.target.value);
         document.getElementById('speedValueLabel').textContent = currentPlaybackRate.toFixed(1);
-        if(activePlayer === 'yt') sendYtCommand('setPlaybackRate', [currentPlaybackRate]);
-        if(activePlayer === 'local') currentLocalAudio.playbackRate = currentPlaybackRate;
+        if(currentLocalAudio) currentLocalAudio.playbackRate = currentPlaybackRate;
     });
 
     function startProgressUpdate() {
         if(progressTimer) clearInterval(progressTimer);
         progressTimer = setInterval(() => {
-            if (isUserSeeking) return;
-            let cur = 0, dur = 0;
-            if(activePlayer === 'yt') {
-                cur = ytCurrentTime;
-                dur = ytDuration;
-            } 
-            else if(activePlayer === 'local') {
-                cur = currentLocalAudio.currentTime; dur = currentLocalAudio.duration;
-                if(document.getElementById('setting-gapless').checked && dur && (dur - cur < 0.2)) handleTrackEnded();
-            }
+            if (isUserSeeking || !currentLocalAudio) return;
+            
+            let cur = currentLocalAudio.currentTime || 0;
+            let dur = currentLocalAudio.duration || 0;
+            
+            if(document.getElementById('setting-gapless').checked && dur && (dur - cur < 0.2)) handleTrackEnded();
+            
             if(dur > 0) {
                 const pct = Math.min((cur / dur) * 100, 100);
                 document.querySelectorAll('.progressBarClass').forEach(el => el.style.width = pct + '%');
@@ -542,10 +533,8 @@
 
     // シークバー操作（タップ・スワイプ・ドラッグ対応）
     function performSeek(e, track) {
-        let dur = 0;
-        if(activePlayer === 'yt') dur = ytDuration;
-        else if(activePlayer === 'local' && currentLocalAudio) dur = currentLocalAudio.duration;
-
+        if(!currentLocalAudio) return;
+        let dur = currentLocalAudio.duration;
         if(!dur || dur <= 0) return;
 
         const rect = track.getBoundingClientRect();
@@ -555,16 +544,10 @@
 
         const targetTime = dur * pct;
 
-        // 即座に見た目を更新
         document.querySelectorAll('.progressBarClass').forEach(el => el.style.width = (pct * 100) + '%');
         document.querySelectorAll('.currentTimeClass').forEach(el => el.textContent = formatTime(targetTime));
 
-        if(activePlayer === 'yt') {
-            ytCurrentTime = targetTime;
-            sendYtCommand('seekTo', [targetTime, true]);
-        } else if(activePlayer === 'local') {
-            currentLocalAudio.currentTime = targetTime;
-        }
+        currentLocalAudio.currentTime = targetTime;
     }
 
     document.querySelectorAll('.progressBarTrackClass').forEach(track => {
@@ -627,19 +610,41 @@
         });
     }
 
+    // 検索処理（YouTube API → エラー時は Render/yt-dlp サーバーへフォールバック）
     async function searchTracks(query) {
         searchHistoryContainer.innerHTML = '';
         const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(query + ' music')}&type=video&key=${YOUTUBE_API_KEY}`;
         try {
-            const res = await fetch(url); const data = await res.json();
-            if (data.items) {
+            const res = await fetch(url); 
+            const data = await res.json();
+            if (data.items && data.items.length > 0) {
                 const tracks = data.items.map(item => ({
-                    id: item.id.videoId, title: item.snippet.title, artist: item.snippet.channelTitle,
-                    thumb: item.snippet.thumbnails.medium ? item.snippet.thumbnails.medium.url : '', type: 'yt'
+                    id: item.id.videoId, 
+                    title: item.snippet.title, 
+                    artist: item.snippet.channelTitle,
+                    thumb: item.snippet.thumbnails.medium ? item.snippet.thumbnails.medium.url : '', 
+                    type: 'yt'
                 }));
                 displayGridResults(tracks, 'searchResultsGrid');
+            } else {
+                searchTracksFromBackend(query);
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.warn("YouTube Search API fallback:", e);
+            searchTracksFromBackend(query);
+        }
+    }
+
+    async function searchTracksFromBackend(query) {
+        try {
+            const res = await fetch(`${RENDER_SERVER}/api/search?q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            if(data.results) {
+                displayGridResults(data.results, 'searchResultsGrid');
+            }
+        } catch(err) {
+            console.error("Backend Search Error:", err);
+        }
     }
 
     function displayGridResults(tracks, containerId) {

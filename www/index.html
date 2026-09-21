@@ -199,20 +199,32 @@
           'controls': 1,
           'modestbranding': 1,
           'rel': 0,
+          'enablejsapi': 1,
+          'origin': window.location.origin || 'http://localhost',
           'vq': 'small' // 低画質指定
         },
         events: {
-          'onStateChange': onPlayerStateChange
+          'onStateChange': onPlayerStateChange,
+          'onError': onPlayerError
         }
       });
     }
 
-    // 再生開始時に画質を最低（144p/small）に強制してギガ節約
     function onPlayerStateChange(event) {
       if (event.data === YT.PlayerState.PLAYING) {
         if (player.setPlaybackQuality) {
           player.setPlaybackQuality('small');
         }
+      }
+    }
+
+    function onPlayerError(event) {
+      console.error("YouTube Player Error:", event.data);
+      const titleEl = document.getElementById('playing-title');
+      if (event.data === 101 || event.data === 150) {
+        titleEl.textContent = '⚠️ 権利者により外部再生が禁止されています。別の動画を試してください。';
+      } else {
+        titleEl.textContent = '⚠️ 再生エラーが発生しました (Error: ' + event.data + ')';
       }
     }
 

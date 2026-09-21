@@ -203,14 +203,24 @@
                 <button class="btn-toggle repeatBtnClass"><i data-lucide="repeat"></i></button>
             </div>
             
-            <div style="display:flex; justify-content: space-between; margin-top:20px; padding: 0 10px;">
-                <button class="btn-control" id="expandedAddPlaylistBtn"><i data-lucide="plus-circle"></i></button>
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-top:20px; padding: 0 10px;">
+                <button class="btn-control" id="expandedAddPlaylistBtn" title="プレイリストに追加"><i data-lucide="plus-circle"></i></button>
+                <button class="btn-control" onclick="enableSleepMode()" title="省電力モード"><i data-lucide="moon"></i></button>
                 <div style="font-size:12px; font-weight:bold; color:var(--text-sub); display:flex; align-items:center; gap:8px;">
                     速度: <span id="speedValueLabel" style="display:inline-block; width:24px;">1.0</span>x
                     <input type="range" id="speedSlider" min="0.1" max="3.0" step="0.1" value="1.0" style="width:80px; accent-color: var(--accent-color);">
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- 省電力（疑似スリープ）モード用のブラックアウトオーバーレイ -->
+<div id="sleepModeOverlay" onclick="handleSleepOverlayClick()" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000000; z-index:999999; flex-direction:column; justify-content:center; align-items:center; user-select:none; -webkit-user-select:none;">
+    <div style="color: #333333; font-size: 13px; font-weight: bold; text-align: center; pointer-events: none;">
+        <i data-lucide="moon" style="width:32px; height:32px; margin-bottom:12px; opacity:0.3;"></i><br>
+        省電力モード動作中<br>
+        <span style="font-size: 11px; opacity: 0.5;">（画面を素早く2回タップして解除）</span>
     </div>
 </div>
 
@@ -245,6 +255,10 @@
     let ytDuration = 0;
     
     let sortableDetail = null;
+
+    // 省電力モード用変数
+    let wakeLock = null;
+    let lastTapTime = 0;
 
     function sendYtCommand(func, args = []) {
         const iframe = document.getElementById('yt-hidden-player');
@@ -774,6 +788,38 @@
 
     document.getElementById('setting-gapless').addEventListener('change', (e) => localStorage.setItem('ms_set_gap', e.target.checked));
     document.getElementById('setting-crossfade').addEventListener('change', (e) => localStorage.setItem('ms_set_cross', e.target.checked));
+
+    // 省電力モード関数群
+    async function enableSleepMode() {
+        const overlay = document.getElementById('sleepModeOverlay');
+        overlay.style.display = 'flex';
+        lucide.createIcons();
+        
+        if ('wakeLock' in navigator) {
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+            } catch (err) {
+                console.log('Wake Lock Error:', err);
+            }
+        }
+    }
+
+    function handleSleepOverlayClick() {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTapTime;
+        if (tapLength < 300 && tapLength > 0) {
+            disableSleepMode();
+        }
+        lastTapTime = currentTime;
+    }
+
+    function disableSleepMode() {
+        const overlay = document.getElementById('sleepModeOverlay');
+        overlay.style.display = 'none';
+        if (wakeLock !== null) {
+            wakeLock.release().then(() => { wakeLock = null; });
+        }
+    }
 
     function escapeHtml(s) { return s?s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'):''; }
     function escapeQuote(s) { return s?s.replace(/'/g,"\\'").replace(/"/g,'&quot;'):''; }

@@ -7,7 +7,7 @@
 
   <script src="capacitor.js"></script>
 
-  <!-- バックグラウンド停止防止スクリプト -->
+  <!-- バックグラウンド再生停止防止スクリプト -->
   <script>
     (function() {
       Object.defineProperty(document, 'visibilityState', { get: function() { return 'visible'; }, configurable: true });
@@ -183,13 +183,11 @@
     <!-- バックグラウンド再生に対応した標準 HTML5 Audio タグ -->
     <audio id="audio-player" controls playsinline></audio>
 
-    <div id="debug-log">ログ: 私設 yt-dlp API (Render) 連携モード起動</div>
+    <div id="debug-log">ログ: iOS端末ダイレクト解析モード</div>
   </div>
 
   <script>
     const YOUTUBE_API_KEY = 'AIzaSyD0qeDWYwSK-S3g3-ESyGhi-UUziAjZo9g';
-    // Renderで作成された実際のAPIサーバーURL
-    const RENDER_SERVER_URL = 'https://musicspace-pro.onrender.com';
 
     function log(msg) {
       const logDiv = document.getElementById('debug-log');
@@ -197,7 +195,7 @@
       console.log(msg);
     }
 
-    // YouTube Data API で曲を検索
+    // 1. YouTube Data API で曲を検索
     async function searchMusic() {
       const query = document.getElementById('search-input').value;
       if (!query) return;
@@ -237,7 +235,7 @@
             </div>
           `;
 
-          trackItem.onclick = () => loadAndPlayAudio(videoId, title, channelTitle);
+          trackItem.onclick = () => loadAndPlayAudioDirect(videoId, title, channelTitle);
           resultsDiv.appendChild(trackItem);
         });
 
@@ -247,34 +245,61 @@
       }
     }
 
-    // 自前Renderサーバー(yt-dlp)からm4a直URLを取得して再生
-    async function loadAndPlayAudio(videoId, title, artist) {
+    // 2. iPhone端末から直接 YouTube API (iOS公式クライアント) を叩いて音源URLを取得
+    async function loadAndPlayAudioDirect(videoId, title, artist) {
       document.getElementById('player-title').textContent = `${title} (${artist})`;
-      log(`Renderサーバー解析開始: ${videoId}`);
+      log(`iPhone端末から直接音源解析中: ${videoId}`);
 
       const audioPlayer = document.getElementById('audio-player');
       audioPlayer.pause();
       audioPlayer.src = '';
 
       try {
-        // 自前Render APIを呼び出し
-        const response = await fetch(`${RENDER_SERVER_URL}/audio?v=${videoId}`);
-        if (!response.ok) throw new Error('サーバー応答エラー');
+        const playerApiUrl = 'https://www.youtube.com/youtubei/v1/player';
+        const payload = {
+          videoId: videoId,
+          context: {
+            client: {
+              clientName: 'IOS',
+              clientVersion: '19.45.4',
+              deviceModel: 'iPhone14,3',
+              osName: 'iOS',
+              osVersion: '17.5.1.21F90'
+            }
+          }
+        };
 
-        const data = await response.json();
+        const res = await fetch(playerApiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'User-Agent': 'com.google.ios.youtube/19.45.4 (iPhone14,3; U; CPU iOS 17_5_1 like Mac OS X; ja_JP)'
+          },
+          body: JSON.stringify(payload)
+        });
 
-        if (data.status === 'ok' && data.url) {
-          log('m4a音源URLの抽出成功！');
-          audioPlayer.src = data.url;
+        if (!res.ok) throw new Error(`HTTPエラー: ${res.status}`);
+
+        const data = await res.json();
+        const formats = data?.streamingData?.adaptiveFormats || [];
+
+        // 最高音質の audio/m4a フォーマットを抽出
+        const audioFormat = formats
+          .filter(f => f.mimeType && f.mimeType.includes('audio'))
+          .sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0))[0];
+
+        if (audioFormat && audioFormat.url) {
+          log('m4a音源の取得成功！');
+          audioPlayer.src = audioFormat.url;
           await audioPlayer.play();
-          log('再生を開始しました（バックグラウンド動作可能）');
+          log('バックグラウンド再生を開始しました');
         } else {
-          throw new Error(data.message || '音源URLの取得失敗');
+          throw new Error('音声URLが見つかりませんでした');
         }
 
       } catch (err) {
-        log(`再生エラー: ${err.message}`);
-        alert(`音源の取得に失敗しました: ${err.message}\n※Render無料版がスリープ状態の場合、起動に約30秒かかります。再度お試しください。`);
+        log(`解析エラー: ${err.message}`);
+        alert(`再生エラー: ${err.message}`);
       }
     }
   </script>

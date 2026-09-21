@@ -216,7 +216,7 @@
 
 <script>
     const YOUTUBE_API_KEY = "AIzaSyD0qeDWYwSK-S3g3-ESyGhi-UUziAjZo9g";
-    const RENDER_SERVER = "https://musicspace-pro.onrender.com"; // ご自身のRenderサーバーのURL
+    const RENDER_SERVER = "https://musicspace-pro.onrender.com";
 
     let playlists = {}; 
     let recentHistory = []; 
@@ -260,15 +260,13 @@
     window.addEventListener('message', (event) => {
         try {
             const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-            if (data.event === 'infoDelivery' && data.info) {
-                if (data.info.currentTime !== undefined) ytCurrentTime = data.info.currentTime;
-                if (data.info.duration !== undefined) ytDuration = data.info.duration;
-                if (data.info.playerState !== undefined) {
-                    if (activePlayer === 'yt') {
-                        if (data.info.playerState === 1) setPlayingState(true);
-                        else if (data.info.playerState === 2) setPlayingState(false);
-                        else if (data.info.playerState === 0) handleTrackEnded();
-                    }
+            if (data && data.info) {
+                if (typeof data.info.currentTime === 'number') ytCurrentTime = data.info.currentTime;
+                if (typeof data.info.duration === 'number' && data.info.duration > 0) ytDuration = data.info.duration;
+                if (data.info.playerState !== undefined && activePlayer === 'yt') {
+                    if (data.info.playerState === 1) setPlayingState(true);
+                    else if (data.info.playerState === 2) setPlayingState(false);
+                    else if (data.info.playerState === 0) handleTrackEnded();
                 }
             }
         } catch (e) {}
@@ -501,7 +499,6 @@
         progressTimer = setInterval(() => {
             let cur = 0, dur = 0;
             if(activePlayer === 'yt') {
-                if (isPlaying) ytCurrentTime += 0.5;
                 cur = ytCurrentTime;
                 dur = ytDuration;
             } 

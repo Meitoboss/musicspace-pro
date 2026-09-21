@@ -72,5 +72,11 @@
 	</array>
 	<key>WKAllowsInlineMediaPlayback</key>
 	<true/>
+	<key>UIBackgrou
+	<key>NSAppTransportSecurity</key>
+	<dict>
+    	<key>NSAllowsArbitraryLoads</key>
+    	<true/>
+	</dict>
 </dict>
 </plist>

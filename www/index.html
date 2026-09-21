@@ -180,10 +180,9 @@
   <div class="player-bar">
     <div id="player-title" class="track-title">曲を選択してください</div>
     
-    <!-- バックグラウンド再生に対応した標準 HTML5 Audio タグ -->
     <audio id="audio-player" controls playsinline></audio>
 
-    <div id="debug-log">ログ: iOS端末ダイレクト解析モード</div>
+    <div id="debug-log">ログ: iOS Direct モード (Client v20.10.4)</div>
   </div>
 
   <script>
@@ -195,7 +194,6 @@
       console.log(msg);
     }
 
-    // 1. YouTube Data API で曲を検索
     async function searchMusic() {
       const query = document.getElementById('search-input').value;
       if (!query) return;
@@ -245,7 +243,6 @@
       }
     }
 
-    // 2. iPhone端末から直接 YouTube API (iOS公式クライアント) を叩いて音源URLを取得
     async function loadAndPlayAudioDirect(videoId, title, artist) {
       document.getElementById('player-title').textContent = `${title} (${artist})`;
       log(`iPhone端末から直接音源解析中: ${videoId}`);
@@ -255,16 +252,18 @@
       audioPlayer.src = '';
 
       try {
-        const playerApiUrl = 'https://www.youtube.com/youtubei/v1/player';
+        const playerApiUrl = 'https://www.youtube.com/youtubei/v1/player?prettyPrint=false';
         const payload = {
           videoId: videoId,
           context: {
             client: {
               clientName: 'IOS',
-              clientVersion: '19.45.4',
+              clientVersion: '20.10.4',
               deviceModel: 'iPhone14,3',
               osName: 'iOS',
-              osVersion: '17.5.1.21F90'
+              osVersion: '17.5.1',
+              hl: 'ja',
+              gl: 'JP'
             }
           }
         };
@@ -272,18 +271,17 @@
         const res = await fetch(playerApiUrl, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'User-Agent': 'com.google.ios.youtube/19.45.4 (iPhone14,3; U; CPU iOS 17_5_1 like Mac OS X; ja_JP)'
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify(payload)
         });
 
-        if (!res.ok) throw new Error(`HTTPエラー: ${res.status}`);
+        if (!res.ok) throw new Error(`HTTPエラー ${res.status}`);
 
         const data = await res.json();
         const formats = data?.streamingData?.adaptiveFormats || [];
 
-        // 最高音質の audio/m4a フォーマットを抽出
+        // 音声フォーマットをビットレート順にソートして最高画質を取得
         const audioFormat = formats
           .filter(f => f.mimeType && f.mimeType.includes('audio'))
           .sort((a, b) => (b.bitrate || 0) - (a.bitrate || 0))[0];
@@ -292,7 +290,7 @@
           log('m4a音源の取得成功！');
           audioPlayer.src = audioFormat.url;
           await audioPlayer.play();
-          log('バックグラウンド再生を開始しました');
+          log('再生を開始しました');
         } else {
           throw new Error('音声URLが見つかりませんでした');
         }

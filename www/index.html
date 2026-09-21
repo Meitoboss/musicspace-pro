@@ -26,9 +26,11 @@
 }.search-bar-container { position: relative; margin-bottom: 15px; width: 100%; max-width: 500px; display: flex; gap: 10px; }.search-input { flex: 1 1 0%; padding: 14px 14px 14px 48px; border-radius: 50px; border: medium; background-color: var(--bg-input); color: var(--text-main); outline: medium; font-size: 14px; }.search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-sub); }.btn-search-trigger { background-color: var(--accent-color); color: rgb(0, 0, 0); border: medium; padding: 0px 24px; border-radius: 50px; font-weight: 700; cursor: pointer; font-size: 14px; white-space: nowrap; flex-shrink: 0; }.search-history-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 30px; }.history-tag { background-color: var(--bg-card); color: var(--text-sub); padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; border: 1px solid var(--border-card); }.history-tag:hover { color: var(--text-main); border-color: var(--accent-color); }.library-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; max-width: 800px; }.btn-add-playlist { background-color: var(--accent-color); color: rgb(0, 0, 0); border: medium; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }.playlist-list { display: flex; flex-direction: column; gap: 8px; }.playlist-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background-color: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-card); cursor: pointer; }.playlist-item:hover { background-color: var(--bg-card-hover); }.playlist-item-img { width: 48px; height: 48px; border-radius: 6px; background-size: cover; background-position: center center; background-color: rgb(36, 41, 47); display: flex; justify-content: center; align-items: center; margin-right: 14px; }.playlist-detail-header { border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px; }.btn-back { background: none; border: medium; color: var(--text-sub); cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; margin-bottom: 16px; }.title-edit-group { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }.btn-edit-title { background: none; border: medium; color: var(--text-sub); cursor: pointer; padding: 4px; }.btn-edit-title:hover { color: var(--accent-color); }.btn-shuffle-play { background-color: var(--accent-color); color: rgb(0, 0, 0); border: medium; padding: 10px 24px; border-radius: 50px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; }.track-row { display: flex; align-items: center; padding: 10px 16px; background: var(--bg-card); border-bottom: 1px solid var(--border-color); gap: 16px; }.track-row:hover { background: var(--bg-card-hover); }.sortable-ghost { opacity: 0.4; background-color: var(--bg-card-hover); }.upload-area { border: 2px dashed var(--border-card); background-color: rgba(36, 41, 47, 0.5); border-radius: 16px; padding: 40px; text-align: center; cursor: pointer; margin-bottom: 30px; }.upload-area:hover { border-color: var(--accent-color); }.settings-panel { background-color: var(--bg-card); border-radius: 12px; padding: 10px 24px; margin-bottom: 30px; }.settings-row { display: flex; justify-content: space-between; align-items: center; padding: 20px 0px; border-bottom: 1px solid var(--border-color); }.settings-row:last-child { border-bottom: medium; }.switch { position: relative; display: inline-block; width: 50px; height: 26px; }.switch input { opacity: 0; width: 0px; height: 0px; }.slider { position: absolute; cursor: pointer; inset: 0px; background-color: rgb(204, 204, 204); transition: 0.3s; border-radius: 34px; }.slider::before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: 0.3s; border-radius: 50%; }input:checked + .slider { background-color: var(--accent-color); }input:checked + .slider::before { transform: translateX(24px); }.settings-select { background-color: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; outline: medium; }.app-version-info { text-align: center; color: var(--text-sub); font-size: 12px; margin-top: 40px; padding-bottom: 20px; }.player-wrapper { position: fixed; bottom: 0px; left: 0px; width: 100%; height: 72px; background-color: rgba(11, 12, 16, 0.95); backdrop-filter: blur(10px); border-top: 1px solid var(--border-color); z-index: 999; transition: height 0.4s cubic-bezier(0.25, 1, 0.5, 1); overflow: hidden; }.player-wrapper.expanded { height: 100vh; background: radial-gradient(circle, rgb(17, 27, 14) 0%, rgb(5, 7, 10) 100%); }.player-bar { width: 100%; height: 72px; display: flex; justify-content: space-between; align-items: center; padding: 0px 20px; position: relative; z-index: 2; cursor: pointer; }.player-wrapper.expanded .player-bar { display: none; }.player-now-playing-info { flex: 1 1 0%; display: flex; flex-direction: column; justify-content: center; overflow: hidden; pointer-events: none; }.player-now-playing-info h5 { font-size: 15px; font-weight: 700; color: rgb(255, 255, 255); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0px; }.mini-btn-play { background: none; border: medium; color: rgb(255, 255, 255); display: flex; align-items: center; justify-content: center; padding: 10px; cursor: pointer; pointer-events: auto; }.mini-btn-play i { width: 28px; height: 28px; fill: currentcolor; }.mini-progress-track { position: absolute; bottom: 0px; left: 0px; width: 100%; height: 2px; background: none; pointer-events: none; z-index: 10; }.mini-progress-current { height: 100%; width: 0%; background-color: var(--accent-color); transition: width 0.1s linear; }.player-expanded-container { display: none; flex-direction: column; align-items: center; width: 100%; height: 100vh; padding: 40px 24px; box-sizing: border-box; position: relative; z-index: 2; }.player-wrapper.expanded .player-expanded-container { display: flex; }.expanded-header { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 450px; margin-bottom: 2vh; }.btn-collapse-player { background: none; border: medium; color: rgb(255, 255, 255); cursor: pointer; padding: 10px; }.expanded-artwork { width: 100%; aspect-ratio: 1 / 1; max-height: 40vh; border-radius: 16px; background-size: cover; background-position: center center; margin-bottom: 4vh; box-shadow: rgba(0, 0, 0, 0.6) 0px 10px 40px; }.expanded-info { text-align: center; width: 100%; margin-bottom: 4vh; }.expanded-info h3 { font-size: 24px; font-weight: 800; margin-bottom: 8px; color: rgb(255, 255, 255); }.expanded-info p { font-size: 16px; color: rgb(143, 148, 153); }.expanded-controls-zone { width: 100%; max-width: 450px; display: flex; flex-direction: column; gap: 24px; }.progress-container { display: flex; align-items: center; gap: 12px; width: 100%; font-size: 12px; color: rgb(143, 148, 153); }.progress-bar { flex: 1 1 0%; height: 6px; background-color: rgb(33, 38, 45); border-radius: 3px; position: relative; cursor: pointer; }.progress-current { width: 0%; height: 100%; background-color: var(--accent-color); border-radius: 3px; pointer-events: none; }.control-buttons { display: flex; justify-content: space-between; align-items: center; padding: 0px 10px; }.btn-play { background-color: rgb(255, 255, 255); color: rgb(0, 0, 0); border: medium; width: 64px; height: 64px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; }.btn-play i { fill: rgb(0, 0, 0); }.btn-control, .btn-toggle { background: none; border: medium; color: rgb(179, 179, 179); cursor: pointer; }.btn-toggle.active-all { color: var(--accent-color); position: relative; }.btn-toggle.active-all::after { content: "•"; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); font-size: 14px; }.btn-toggle.active-one { color: var(--accent-color); position: relative; }.btn-toggle.active-one::after { content: "1"; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: bold; }.modal-overlay { position: fixed; top: 0px; left: 0px; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; }.modal-overlay.active { display: flex; }.modal-content { background: var(--bg-card); border: 1px solid var(--border-card); width: 100%; max-width: 400px; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }.modal-selector-item { padding: 12px; background: var(--bg-main); border-radius: 6px; cursor: pointer; font-weight: 600; text-align: left; border: medium; color: rgb(255, 255, 255); width: 100%; }.modal-selector-item:hover { background: var(--accent-color); color: rgb(0, 0, 0); }</style></head>
 <body>
 
-<div id="yt-player-container"><iframe id="yt-hidden-player" frameborder="0" allowfullscreen="" allow="autoplay; encrypted-media" width="10" height="10" src="about:blank"></iframe></div>
-<audio id="local-audio-1" class="hidden"></audio>
-<audio id="local-audio-2" class="hidden"></audio>
+<div id="yt-player-container" style="position: fixed; top: -9999px; left: -9999px; width: 300px; height: 300px; opacity: 0.01; pointer-events: none; z-index: -1;">
+    <iframe id="yt-hidden-player" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" playsinline webkit-playsinline width="300" height="300" src="about:blank"></iframe>
+</div>
+<audio id="local-audio-1" class="hidden" playsinline webkit-playsinline></audio>
+<audio id="local-audio-2" class="hidden" playsinline webkit-playsinline></audio>
 
 <button class="btn-menu-trigger" id="openMenuBtn"><i data-lucide="menu"></i></button>
 
@@ -136,10 +138,6 @@
                     <div><h4>クロスフェード</h4><p>曲の終わりと始まりを重ねる</p></div>
                     <label class="switch"><input type="checkbox" id="setting-crossfade"><span class="slider"></span></label>
                 </div>
-                <div class="settings-row">
-                    <div><h4>モノラル切り替え</h4><p>ステレオ音声をモノラルにミックス</p></div>
-                    <label class="switch"><input type="checkbox" id="setting-mono"><span class="slider"></span></label>
-                </div>
             </div>
 
             <div class="app-version-info">
@@ -238,10 +236,6 @@
     const localAudio2 = document.getElementById('local-audio-2');
     let currentLocalAudio = localAudio1;
 
-    let audioCtx = null;
-    let gainNode = null;
-    let source1 = null, source2 = null;
-
     let modalTargetTrack = null;
     let currentDetailPlaylist = null;
     let progressTimer = null;
@@ -252,7 +246,6 @@
     
     let sortableDetail = null;
 
-    // --- エラー153対策：Renderサーバー経由のYouTubeプレイヤー操作コマンド ---
     function sendYtCommand(func, args = []) {
         const iframe = document.getElementById('yt-hidden-player');
         if (iframe && iframe.contentWindow) {
@@ -264,7 +257,6 @@
         }
     }
 
-    // Web Playerからのイベント受信 (再生経過時間、曲終了など)
     window.addEventListener('message', (event) => {
         try {
             const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
@@ -282,7 +274,6 @@
         } catch (e) {}
     });
 
-    // --- YouTube API (人気のトレンド曲を自動取得) ---
     async function loadTrendingMusic() {
         const grid = document.getElementById('trendingGrid');
         try {
@@ -308,7 +299,6 @@
         }
     }
 
-    // --- スリープタイマー処理 ---
     document.getElementById('sleepTimerSelect').addEventListener('change', (e) => {
         if(sleepTimerId) clearTimeout(sleepTimerId);
         const minutes = parseInt(e.target.value);
@@ -324,7 +314,6 @@
         }
     });
 
-    // --- スワイプでサイドバー開閉 ---
     let touchstartX = 0;
     let touchendX = 0;
     window.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; }, {passive: true});
@@ -340,7 +329,6 @@
     document.getElementById('openMenuBtn').addEventListener('click', () => document.getElementById('sidebar').classList.remove('collapsed'));
     document.getElementById('closeMenuBtn').addEventListener('click', () => document.getElementById('sidebar').classList.add('collapsed'));
 
-    // --- プレイヤー展開/縮小 ---
     function expandPlayer(e) {
         if(e.target.closest('button')) return; 
         document.getElementById('playerWrapper').classList.add('expanded');
@@ -350,7 +338,6 @@
         document.getElementById('playerWrapper').classList.remove('expanded');
     }
 
-    // --- IndexedDB & Web Audio Init ---
     function initDB() {
         const req = indexedDB.open("MusicSpaceLocalDB", 1);
         req.onupgradeneeded = (e) => {
@@ -360,31 +347,12 @@
         req.onsuccess = (e) => { localFilesDB = e.target.result; loadLocalTracks(); };
     }
 
-    function initWebAudio() {
-        if(audioCtx) return;
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        audioCtx = new AudioContext();
-        source1 = audioCtx.createMediaElementSource(localAudio1);
-        source2 = audioCtx.createMediaElementSource(localAudio2);
-        gainNode = audioCtx.createGain();
-        source1.connect(gainNode); source2.connect(gainNode); gainNode.connect(audioCtx.destination);
-        applyAudioSettings();
-    }
-
-    function applyAudioSettings() {
-        if(!gainNode) return;
-        if(document.getElementById('setting-mono').checked) { gainNode.channelCount = 1; gainNode.channelCountMode = 'explicit'; }
-        else { gainNode.channelCount = 2; gainNode.channelCountMode = 'max'; }
-    }
-
-    // --- Local Audio Events ---
     [localAudio1, localAudio2].forEach(audioEl => {
         audioEl.addEventListener('play', () => { if(currentLocalAudio === audioEl && activePlayer === 'local') setPlayingState(true); });
         audioEl.addEventListener('pause', () => { if(currentLocalAudio === audioEl && activePlayer === 'local') setPlayingState(false); });
         audioEl.addEventListener('ended', () => { if(currentLocalAudio === audioEl && activePlayer === 'local') handleTrackEnded(); });
     });
 
-    // --- Playback Logic ---
     function setPlayingState(playing) {
         isPlaying = playing;
         const icons = document.querySelectorAll('.playIconClass');
@@ -401,7 +369,6 @@
     function togglePlay(e) {
         if(e) e.stopPropagation();
         if(!currentTrackData) return;
-        initWebAudio();
         if(activePlayer === 'yt') {
             if (isPlaying) { sendYtCommand('pauseVideo'); setPlayingState(false); } 
             else { sendYtCommand('playVideo'); setPlayingState(true); }
@@ -444,7 +411,6 @@
     document.querySelectorAll('.prevBtnClass').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); prevTrack(); }));
 
     function playTrackObject(trackObj, updateQueue = true) {
-        initWebAudio();
         currentTrackData = trackObj;
         
         document.querySelectorAll('.track-title-field').forEach(el => el.textContent = trackObj.title);
@@ -470,23 +436,33 @@
                 const data = e.target.result; if(!data) return;
                 const url = URL.createObjectURL(data.blob);
                 const isCross = document.getElementById('setting-crossfade').checked;
+                
                 if(isCross && isPlaying && currentLocalAudio.currentTime > 0) {
                     const nextAudio = currentLocalAudio === localAudio1 ? localAudio2 : localAudio1;
-                    nextAudio.src = url; nextAudio.playbackRate = currentPlaybackRate; nextAudio.play();
+                    nextAudio.src = url; nextAudio.playbackRate = currentPlaybackRate; 
+                    nextAudio.play().then(() => setPlayingState(true)).catch(console.error);
                     const fadeOutAudio = currentLocalAudio; let vol = 1.0;
                     const fadeInt = setInterval(() => { vol -= 0.05; if(vol <= 0) { clearInterval(fadeInt); fadeOutAudio.pause(); } else fadeOutAudio.volume = vol; }, 200);
                     currentLocalAudio = nextAudio;
                 } else {
-                    currentLocalAudio.src = url; currentLocalAudio.playbackRate = currentPlaybackRate; currentLocalAudio.play();
+                    currentLocalAudio.src = url; 
+                    currentLocalAudio.playbackRate = currentPlaybackRate; 
+                    currentLocalAudio.play().then(() => {
+                        setPlayingState(true);
+                    }).catch(err => {
+                        console.error("Local play error:", err);
+                    });
                 }
-                setPlayingState(true);
             };
         } else {
             localAudio1.pause(); localAudio2.pause(); activePlayer = 'yt';
             ytCurrentTime = 0; ytDuration = 0;
             const iframe = document.getElementById('yt-hidden-player');
             if (iframe) {
-                iframe.src = `${RENDER_SERVER}/player?v=${trackObj.id}`;
+                iframe.src = 'about:blank';
+                setTimeout(() => {
+                    iframe.src = `${RENDER_SERVER}/player?v=${trackObj.id}`;
+                }, 50);
             }
             setPlayingState(true);
         }
@@ -495,7 +471,6 @@
 
     function playTrackIndex(idx) { if(idx >= 0 && idx < currentQueue.length) playTrackObject(currentQueue[idx], false); }
 
-    // Shuffle & Repeat
     document.querySelectorAll('.shuffleBtnClass').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation(); isShuffle = !isShuffle;
@@ -521,7 +496,6 @@
         if(activePlayer === 'local') currentLocalAudio.playbackRate = currentPlaybackRate;
     });
 
-    // Progress Bar
     function startProgressUpdate() {
         if(progressTimer) clearInterval(progressTimer);
         progressTimer = setInterval(() => {
@@ -562,7 +536,6 @@
 
     function formatTime(s) { const mins = Math.floor(s/60); const secs = Math.floor(s%60); return `${mins}:${secs<10?'0':''}${secs}`; }
 
-    // --- Search with History ---
     const searchInput = document.getElementById('search-input');
     const searchHistoryContainer = document.getElementById('search-history-container');
 
@@ -634,7 +607,6 @@
         document.getElementById('history-section-title').style.display = recentHistory.length ? 'block' : 'none';
     }
 
-    // --- Playlists ---
     document.getElementById('createPlaylistBtn').addEventListener('click', () => {
         let count = 1; while(playlists[`名称未設定のプレイリスト${count}`]) count++;
         playlists[`名称未設定のプレイリスト${count}`] = []; savePlaylists(); renderPlaylists();
@@ -748,7 +720,6 @@
     function closePlaylistModal() { document.getElementById('playlistModal').classList.remove('active'); }
     document.getElementById('expandedAddPlaylistBtn').addEventListener('click', (e) => { if(currentTrackData) openPlaylistModal(e, currentTrackData); });
 
-    // --- Local Files ---
     document.getElementById('localFileInput').addEventListener('change', (e) => {
         const files = e.target.files; if(files.length === 0) return;
         const tx = localFilesDB.transaction('local_tracks', 'readwrite'); const store = tx.objectStore('local_tracks');
@@ -788,7 +759,6 @@
     function playLocal(idx) { currentQueue = [...localTracks]; currentQueueIndex = idx; playTrackIndex(idx); }
     function deleteLocal(id) { if(confirm("ローカルから削除しますか？")) localFilesDB.transaction('local_tracks', 'readwrite').objectStore('local_tracks').delete(id).onsuccess = () => loadLocalTracks(); }
 
-    // --- Core UI & Setup ---
     function switchTab(tabId) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
@@ -805,14 +775,12 @@
         else { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('ms_theme', 'dark'); }
     });
 
-    document.getElementById('setting-mono').addEventListener('change', () => { applyAudioSettings(); localStorage.setItem('ms_set_mono', document.getElementById('setting-mono').checked); });
     document.getElementById('setting-gapless').addEventListener('change', (e) => localStorage.setItem('ms_set_gap', e.target.checked));
     document.getElementById('setting-crossfade').addEventListener('change', (e) => localStorage.setItem('ms_set_cross', e.target.checked));
 
     function escapeHtml(s) { return s?s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'):''; }
     function escapeQuote(s) { return s?s.replace(/'/g,"\\'").replace(/"/g,'&quot;'):''; }
 
-    // Init
     window.addEventListener('DOMContentLoaded', () => {
         initDB();
         const pl = localStorage.getItem('ms_playlists'); if(pl) playlists = JSON.parse(pl);
@@ -822,7 +790,6 @@
         
         document.getElementById('setting-gapless').checked = localStorage.getItem('ms_set_gap') === 'true';
         document.getElementById('setting-crossfade').checked = localStorage.getItem('ms_set_cross') === 'true';
-        document.getElementById('setting-mono').checked = localStorage.getItem('ms_set_mono') === 'true';
         
         renderPlaylists();
         displayGridResults(recentHistory, 'historyGrid');

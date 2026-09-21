@@ -1,6 +1,5 @@
-import os
-import subprocess
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -12,59 +11,41 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-COOKIE_FILE_PATH = "/tmp/youtube_cookies.txt"
-
-def setup_cookies():
-    cookie_data = os.getenv("YOUTUBE_COOKIES", "")
-    if cookie_data:
-        try:
-            with open(COOKIE_FILE_PATH, "w", encoding="utf-8") as f:
-                f.write(cookie_data)
-            print("cookies.txt の生成に成功しました。")
-        except Exception as e:
-            print(f"クッキーファイルの書き込みエラー: {e}")
-
-@app.on_event("startup")
-def startup_event():
-    setup_cookies()
-
 @app.get("/")
 def home():
-    return {"status": "ok", "message": "yt-dlp API with Cookies is running"}
+    return {"status": "ok"}
 
-@app.get("/audio")
-def get_audio_url(v: str):
-    yt_url = f"https://www.youtube.com/watch?v={v}"
-    
-    # 毎回最新の環境変数からクッキーファイルをチェック/更新
-    setup_cookies()
-    cookie_exists = os.path.exists(COOKIE_FILE_PATH)
-    
-    cmd = [
-        "yt-dlp",
-        "-g",
-        "-f", "ba[ext=m4a]/ba/b",
-        "--no-warnings",
-        "--extractor-args", "youtube:player_client=ios,mweb"
-    ]
-    
-    if cookie_exists:
-        cmd.extend(["--cookies", COOKIE_FILE_PATH])
-        
-    cmd.append(yt_url)
-    
-    try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        urls = result.stdout.strip().split('\n')
-        direct_url = urls[0] if urls else ""
-        
-        if direct_url:
-            return {"status": "ok", "url": direct_url}
-        else:
-            return {"status": "error", "message": "音源URLが空でした"}
-
-    except subprocess.CalledProcessError as e:
-        error_msg = e.stderr.strip() if e.stderr else e.stdout.strip()
-        return {"status": "error", "message": f"yt-dlp error: {error_msg}"}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
+# エラー153対策：正しいHTTPS Refererを保持し、操作イベントを中継するWebプレイヤー
+@app.get("/player", response_class=HTMLResponse)
+def player_page(v: str):
+    html_content = f"""
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="referrer" content="strict-origin-when-cross-origin">
+        <style>
+            body, html {{ margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }}
+            iframe {{ width: 100%; height: 100%; border: 0; }}
+        </style>
+    </head>
+    <body>
+        <iframe id="yt" 
+                src="https://www.youtube-nocookie.com/embed/{v}?enablejsapi=1&autoplay=1&playsinline=1&controls=0&rel=0" 
+                allow="autoplay; encrypted-media" 
+                referrerpolicy="strict-origin-when-cross-origin"
+                allowfullscreen></iframe>
+        <script>
+            // アプリ側からの操作メッセージ（play, pause, seekToなど）をYouTube iframeにそのまま転送
+            window.addEventListener('message', function(e) {{
+                var iframe = document.getElementById('yt');
+                if (iframe && iframe.contentWindow) {{
+                    iframe.contentWindow.postMessage(e.data, '*');
+                }}
+            }});
+        </script>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)

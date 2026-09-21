@@ -6,7 +6,6 @@ import yt_dlp
 
 app = FastAPI()
 
-# CORS許可設定（アプリやWebからのリクエストを許可）
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,9 +17,7 @@ app.add_middleware(
 def home():
     return {"status": "ok"}
 
-# ==========================================
-# 1. 既存機能：Web View用 iframe プレイヤー
-# ==========================================
+# 1. 既存の Web View用 iframe プレイヤー
 @app.get("/player", response_class=HTMLResponse)
 def player_page(v: str):
     html_content = f"""
@@ -54,29 +51,59 @@ def player_page(v: str):
     """
     return HTMLResponse(content=html_content)
 
-# ==========================================
-# 2. 新機能：モバイルアプリ用 バックグラウンド音声ストリーム (403回避プロキシ)
-# ==========================================
-def _get_youtube_audio_info(video_id: str):
-    url = f"https://www.youtube.com/watch?v={video_id}"
-    ydl_opts = {
-        'format': 'bestaudio[ext=m4a]/bestaudio',  # iOS/Android共に再生可能なm4aを優先
-        'quiet': True,
-        'no_warnings': True,
-    }
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(url, download=False)
-        return info['url'], info.get('http_headers', {})
+# 音声ストリームURLを取得する強力な関数 (Bot対策 + 自動フォールバック)
+async def get_audio_stream_info(video_id: str):
+    # 【方法1】yt-dlp で iOS/Android アプリを装って取得を試みる
+    try:
+        url = f"https://www.youtube.com/watch?v={video_id}"
+        ydl_opts = {
+            'format': 'bestaudio[ext=m4a]/bestaudio',
+            'quiet': True,
+            'no_warnings': True,
+            'extractor_args': {
+                'youtube': {
+                    # モバイルアプリのクライアントとしてリクエスト（Bot判定回避）
+                    'player_client': ['ios', 'android', 'mweb'],
+                }
+            }
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            return info['url'], info.get('http_headers', {})
+    except Exception as e:
+        print(f"yt-dlp 失敗: {e} -> Piped API に自動切り替えします")
 
+    # 【方法2】yt-dlp が失敗した場合、Piped API (分散代替API) から取得する
+    piped_instances = [
+        "https://pipedapi.kavin.rocks",
+        "https://api.piped.privacydev.net",
+        "https://pipedapi.mha.fi"
+    ]
+    
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        for instance in piped_instances:
+            try:
+                res = await client.get(f"{instance}/streams/{video_id}")
+                if res.status_code == 200:
+                    data = res.json()
+                    audio_streams = data.get("audioStreams", [])
+                    if audio_streams:
+                        # m4a(AAC)形式のストリームを優先的に探す
+                        m4a_stream = next((s for s in audio_streams if s.get("mimeType") == "audio/mp4"), audio_streams[0])
+                        return m4a_stream["url"], {"User-Agent": "Mozilla/5.0"}
+            except Exception:
+                continue
+
+    raise RuntimeError("すべてのソースから音声の取得に失敗しました。")
+
+# 2. モバイルアプリ用 音声ストリームプロキシ
 @app.get("/api/proxy/{video_id}")
 async def proxy_audio(video_id: str, request: Request):
     try:
-        # yt-dlp で音声直URLと要求ヘッダーを取得
-        stream_url, headers = _get_youtube_audio_info(video_id)
+        stream_url, headers = await get_audio_stream_info(video_id)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"yt-dlp error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-    # アプリ側からのRangeヘッダー（シーク再生用）を保持して転送
     req_headers = {
         "User-Agent": headers.get("User-Agent", "Mozilla/5.0"),
     }
@@ -87,7 +114,6 @@ async def proxy_audio(video_id: str, request: Request):
     req = client.build_request("GET", stream_url, headers=req_headers)
     r = await client.send(req, stream=True)
 
-    # サーバー経由で音声データをストリーミング返却（IPバインドによる403回避）
     return StreamingResponse(
         r.aiter_raw(),
         status_code=r.status_code,

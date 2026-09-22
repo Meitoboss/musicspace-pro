@@ -1,9 +1,9 @@
 import re
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
-import requests
+import innertube
+import yt_dlp
 
 app = FastAPI()
 
@@ -15,8 +15,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-RAPIDAPI_KEY = "29d81488fdmsh21f3d3d5b6ba2eap1b9d75jsn3a69ea14ce28"
-RAPIDAPI_HOST = "youtube-mp3-audio-video-downloader.p.rapidapi.com"
+# InnerTube クライアント初期化 (YouTube Music クライアント)
+ytm_client = innertube.InnerTube("WEB_REMIX")
 
 def extract_video_id(url: str) -> str:
     patterns = [
@@ -29,82 +29,63 @@ def extract_video_id(url: str) -> str:
             return match.group(1)
     if len(url) == 11 and re.match(r'^[0-9A-Za-z_-]{11}$', url):
         return url
-    return None
+    return url
 
-def fetch_audio_url(url: str) -> str:
-    video_id = extract_video_id(url)
-    if not video_id:
-        raise HTTPException(status_code=400, detail="無効なYouTube URLです。")
-
-    api_url = f"https://{RAPIDAPI_HOST}/get_m4a_download_link/{video_id}"
-    headers = {
-        "x-rapidapi-host": RAPIDAPI_HOST,
-        "x-rapidapi-key": RAPIDAPI_KEY
+def fetch_audio_via_innertube(video_url: str):
+    # 公式iOS/Android MusicアプリのInnerTubeクライアントになりすまして抽出
+    ydl_opts = {
+        'format': 'm4a/bestaudio/best',
+        'quiet': True,
+        'no_warnings': True,
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['ios', 'android_music']
+            }
+        }
     }
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(video_url, download=False)
+        audio_url = info.get('url')
 
-    response = requests.get(api_url, headers=headers)
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail="RapidAPIからの取得に失敗しました。")
+        if not audio_url:
+            raise HTTPException(status_code=400, detail="音声URLの取得に失敗しました。")
 
-    data = response.json()
-    audio_url = data.get("file")
+        # iOS ATS対策 (http -> https)
+        if audio_url.startswith("http://"):
+            audio_url = audio_url.replace("http://", "https://", 1)
 
-    if not audio_url:
-        raise HTTPException(status_code=400, detail="音声URLが見つかりませんでした。")
-
-    if audio_url.startswith("http://"):
-        audio_url = audio_url.replace("http://", "https://", 1)
-
-    return audio_url
-
-def build_response(audio_url: str):
-    return {
-        "status": "ok",              # アプリで最も一般的な "ok" に変更！
-        "result": "success",
-        "success": True,
-        "code": 200,
-        "message": "ok",
-        "url": audio_url,
-        "audioUrl": audio_url,
-        "audio_url": audio_url,
-        "stream_url": audio_url,
-        "streamUrl": audio_url,
-        "download_url": audio_url,
-        "downloadUrl": audio_url,
-        "link": audio_url,
-        "file": audio_url,
-        "src": audio_url,
-        "title": "YouTube Audio",
-        "artist": "YouTube",
-        "duration": 0,
-        "data": {
+        return {
             "status": "ok",
+            "result": "success",
+            "success": True,
+            "code": 200,
+            "message": "ok",
             "url": audio_url,
             "audioUrl": audio_url,
             "audio_url": audio_url,
             "stream_url": audio_url,
-            "link": audio_url
+            "title": info.get("title", "YouTube Audio"),
+            "artist": info.get("uploader", "YouTube"),
+            "duration": info.get("duration", 0),
+            "data": {
+                "status": "ok",
+                "url": audio_url,
+                "audioUrl": audio_url,
+                "audio_url": audio_url
+            }
         }
-    }
 
 @app.get("/")
 def root():
-    return {"status": "ok", "message": "MusicSpace Pro Backend"}
+    return {"status": "ok", "message": "InnerTube Powered Backend"}
 
 # GET リクエスト対応
 @app.get("/api/audio")
-def get_audio(url: str = Query(..., description="YouTube URL"), redirect: bool = False):
-    audio_url = fetch_audio_url(url)
-    if redirect:
-        return RedirectResponse(url=audio_url)
-    return build_response(audio_url)
-
-# アプリが直接リダイレクトを期待している場合用のエンドポイント
-@app.get("/api/stream")
-@app.get("/api/redirect")
-def get_stream(url: str = Query(..., description="YouTube URL")):
-    audio_url = fetch_audio_url(url)
-    return RedirectResponse(url=audio_url)
+def get_audio(url: str = Query(..., description="YouTube URL or Video ID")):
+    try:
+        return fetch_audio_via_innertube(url)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # POST リクエスト対応
 class AudioBody(BaseModel):
@@ -117,5 +98,7 @@ def post_audio(body: AudioBody):
     target_url = body.url or body.youtubeUrl or body.youtube_url
     if not target_url:
         raise HTTPException(status_code=400, detail="URLが指定されていません。")
-    audio_url = fetch_audio_url(target_url)
-    return build_response(audio_url)
+    try:
+        return fetch_audio_via_innertube(target_url)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -1,5 +1,5 @@
 fastapi
 uvicorn
-yt-dlp
-httpx
 requests
+innertube
+yt-dlp

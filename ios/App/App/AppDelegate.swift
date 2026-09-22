@@ -1,7 +1,6 @@
 import UIKit
 import Capacitor
 import AVFoundation
-import MediaPlayer
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -17,20 +16,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             print("AVAudioSessionの設定に失敗しました: \(error)")
         }
 
-        // リモートコントロールイベントの受付を開始（戻り値未使用の警告/エラーを回避するため `_ =` を指定）
-        UIApplication.shared.beginReceivingRemoteControlEvents()
-        let commandCenter = MPRemoteCommandCenter.shared()
-        
-        commandCenter.playCommand.isEnabled = true
-        _ = commandCenter.playCommand.addTarget { _ in
-            return MPRemoteCommandHandlerStatus.success
-        }
-        
-        commandCenter.pauseCommand.isEnabled = true
-        _ = commandCenter.pauseCommand.addTarget { _ in
-            return MPRemoteCommandHandlerStatus.success
-        }
-
         return true
     }
 
@@ -40,7 +25,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationDidBecomeActive(_ application: UIApplication) {}
     func applicationWillTerminate(_ application: UIApplication) {}
 
-    // Capacitorプラグイン・URLスキップ用の委譲処理（追加）
+    // Capacitorプラグイン・URLスキップ用の委譲処理
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
         return ApplicationDelegateProxy.shared.application(app, open: url, options: options)
     }

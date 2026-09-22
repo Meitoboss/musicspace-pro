@@ -1,12 +1,12 @@
 import re
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 import requests
 
 app = FastAPI()
 
-# CORS制限を全開放
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -31,7 +31,7 @@ def extract_video_id(url: str) -> str:
         return url
     return None
 
-def process_audio(url: str):
+def fetch_audio_url(url: str) -> str:
     video_id = extract_video_id(url)
     if not video_id:
         raise HTTPException(status_code=400, detail="無効なYouTube URLです。")
@@ -52,27 +52,37 @@ def process_audio(url: str):
     if not audio_url:
         raise HTTPException(status_code=400, detail="音声URLが見つかりませんでした。")
 
-    # iOSのHTTP通信制限対策 (http -> https)
     if audio_url.startswith("http://"):
         audio_url = audio_url.replace("http://", "https://", 1)
 
-    # アプリ側がどの構造・キー名を求めていても合致するよう全パターン返却
+    return audio_url
+
+def build_response(audio_url: str):
     return {
-        "status": "success",
+        "status": "ok",              # アプリで最も一般的な "ok" に変更！
+        "result": "success",
         "success": True,
         "code": 200,
+        "message": "ok",
         "url": audio_url,
         "audioUrl": audio_url,
         "audio_url": audio_url,
-        "link": audio_url,
+        "stream_url": audio_url,
+        "streamUrl": audio_url,
         "download_url": audio_url,
+        "downloadUrl": audio_url,
+        "link": audio_url,
+        "file": audio_url,
         "src": audio_url,
         "title": "YouTube Audio",
+        "artist": "YouTube",
         "duration": 0,
         "data": {
+            "status": "ok",
             "url": audio_url,
             "audioUrl": audio_url,
             "audio_url": audio_url,
+            "stream_url": audio_url,
             "link": audio_url
         }
     }
@@ -81,12 +91,22 @@ def process_audio(url: str):
 def root():
     return {"status": "ok", "message": "MusicSpace Pro Backend"}
 
-# 1. GET リクエスト（クエリパラメータ）対応
+# GET リクエスト対応
 @app.get("/api/audio")
-def get_audio(url: str = Query(..., description="YouTube URL")):
-    return process_audio(url)
+def get_audio(url: str = Query(..., description="YouTube URL"), redirect: bool = False):
+    audio_url = fetch_audio_url(url)
+    if redirect:
+        return RedirectResponse(url=audio_url)
+    return build_response(audio_url)
 
-# 2. POST リクエスト（JSONボディ）対応
+# アプリが直接リダイレクトを期待している場合用のエンドポイント
+@app.get("/api/stream")
+@app.get("/api/redirect")
+def get_stream(url: str = Query(..., description="YouTube URL")):
+    audio_url = fetch_audio_url(url)
+    return RedirectResponse(url=audio_url)
+
+# POST リクエスト対応
 class AudioBody(BaseModel):
     url: str = None
     youtubeUrl: str = None
@@ -97,4 +117,5 @@ def post_audio(body: AudioBody):
     target_url = body.url or body.youtubeUrl or body.youtube_url
     if not target_url:
         raise HTTPException(status_code=400, detail="URLが指定されていません。")
-    return process_audio(target_url)
+    audio_url = fetch_audio_url(target_url)
+    return build_response(audio_url)

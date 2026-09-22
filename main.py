@@ -3,6 +3,29 @@ from fastapi.responses import HTMLResponse
 
 app = FastAPI()
 
+# 1. /player へのアクセス用（埋め込みプレイヤー）
+@app.get("/player", response_class=HTMLResponse)
+def player_page(v: str = ""):
+    return HTMLResponse(content=f"""
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body, html {{ margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }}
+            iframe {{ width: 100%; height: 100%; border: 0; }}
+        </style>
+    </head>
+    <body>
+        <iframe src="https://www.youtube-nocookie.com/embed/{v}?autoplay=1&playsinline=1&controls=1" 
+                allow="autoplay; encrypted-media" 
+                allowfullscreen></iframe>
+    </body>
+    </html>
+    """)
+
+# 2. トップページ ( Web 音楽プレイヤー )
 @app.get("/", response_class=HTMLResponse)
 def index():
     return HTMLResponse(content="""
@@ -53,7 +76,6 @@ def index():
     </div>
 
     <script>
-        // スマホのブラウザから直接アクセスする分散API（一般回線のため制限を受けない）
         const PIPED_INSTANCES = [
             "https://pipedapi.kavin.rocks",
             "https://pipedapi.tokhmi.xyz",
@@ -131,14 +153,12 @@ def index():
 
                 if (audioStreams.length === 0) throw new Error("音声なし");
 
-                // 通信量（ギガ）節約のため、軽量な m4a (AAC) のみを抽出
                 const m4aStream = audioStreams.find(s => s.mimeType && s.mimeType.includes('audio/mp4')) || audioStreams[0];
                 
                 audio.src = m4aStream.url;
                 artistElem.innerText = uploader;
                 audio.play();
 
-                // ロック画面・通知センター表示（バックグラウンド再生）
                 if ('mediaSession' in navigator) {
                     navigator.mediaSession.metadata = new MediaMetadata({
                         title: title,

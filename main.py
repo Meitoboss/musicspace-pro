@@ -1,4 +1,5 @@
 import os
+import shutil
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,8 +15,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- yt-dlp 共通設定（RenderのSecret Filesとローカル両対応） ---
-COOKIE_FILE = '/etc/secrets/cookies.txt' if os.path.exists('/etc/secrets/cookies.txt') else 'cookies.txt'
+# --- yt-dlp 共通設定（Read-only回避 & ローカル両対応） ---
+SECRET_COOKIE = '/etc/secrets/cookies.txt'
+LOCAL_COOKIE = 'cookies.txt'
+TMP_COOKIE = '/tmp/cookies.txt'
+
+COOKIE_FILE = None
+
+# RenderのSecret FilesはRead-Onlyのため、書き込み可能な/tmp/にコピーして使用する
+if os.path.exists(SECRET_COOKIE):
+    try:
+        shutil.copyfile(SECRET_COOKIE, TMP_COOKIE)
+        COOKIE_FILE = TMP_COOKIE
+        print(f"Copied secret cookie to {TMP_COOKIE}")
+    except Exception as e:
+        print(f"Failed to copy cookie: {e}")
+        COOKIE_FILE = SECRET_COOKIE
+elif os.path.exists(LOCAL_COOKIE):
+    COOKIE_FILE = LOCAL_COOKIE
 
 BASE_YTDL_OPTS = {
     'quiet': True,
@@ -23,11 +40,11 @@ BASE_YTDL_OPTS = {
     'javascript_runtimes': ['nodejs'],
 }
 
-if os.path.exists(COOKIE_FILE):
+if COOKIE_FILE and os.path.exists(COOKIE_FILE):
     BASE_YTDL_OPTS['cookiefile'] = COOKIE_FILE
     print(f"Loaded cookie file: {COOKIE_FILE}")
 else:
-    print(f"Warning: Cookie file NOT found at {COOKIE_FILE}")
+    print(f"Warning: Cookie file NOT found")
 
 @app.get("/")
 def home():
@@ -69,7 +86,7 @@ def player_page(v: str):
 
 # 音声ストリームURLを取得する関数 (Bot対策 + 自動フォールバック)
 async def get_audio_stream_info(video_id: str):
-    # 【方法1】yt-dlp で取得を試みる (cookies.txt & Node.js 統合版)
+    # 【方法1】yt-dlp で取得を試みる
     try:
         url = f"https://www.youtube.com/watch?v={video_id}"
         ydl_opts = {
@@ -87,7 +104,7 @@ async def get_audio_stream_info(video_id: str):
     except Exception as e:
         print(f"yt-dlp 失敗: {e} -> Piped API に自動切り替えします")
 
-    # 【方法2】yt-dlp が失敗した場合、Piped API (分散代替API) から取得する
+    # 【方法2】yt-dlp が失敗した場合、Piped API から取得する
     piped_instances = [
         "https://pipedapi.kavin.rocks",
         "https://api.piped.privacydev.net",
@@ -102,7 +119,6 @@ async def get_audio_stream_info(video_id: str):
                     data = res.json()
                     audio_streams = data.get("audioStreams", [])
                     if audio_streams:
-                        # m4a(AAC)形式のストリームを優先的に探す
                         m4a_stream = next((s for s in audio_streams if s.get("mimeType") == "audio/mp4"), audio_streams[0])
                         return m4a_stream["url"], {"User-Agent": "Mozilla/5.0"}
             except Exception:
@@ -147,6 +163,11 @@ async def search_music(q: str):
         **BASE_YTDL_OPTS,
         'extract_flat': True,
         'skip_download': True,
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['ios', 'android', 'mweb'],
+            }
+        }
     }
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:

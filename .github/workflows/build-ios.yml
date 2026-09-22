@@ -17,11 +17,17 @@ jobs:
       - name: Node.js のセットアップ
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
           cache: 'npm'
 
       - name: パッケージのインストール
-        run: npm ci
+        run: npm ci || npm install
+
+      - name: Webアセットのビルド (存在する場合のみ)
+        run: |
+          if grep -q '"build":' package.json; then
+            npm run build
+          fi
 
       - name: Capacitor 同期 (iOS)
         run: npx cap sync ios
@@ -45,6 +51,7 @@ jobs:
             -scheme App \
             -configuration Release \
             -sdk iphoneos \
+            -derivedDataPath ios/App/build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
@@ -53,11 +60,7 @@ jobs:
       - name: IPAパッケージの作成
         run: |
           mkdir -p Payload
-          if [ -d "ios/App/build/Release-iphoneos/App.app" ]; then
-            cp -R ios/App/build/Release-iphoneos/App.app Payload/
-          else
-            cp -R ~/Library/Developer/Xcode/DerivedData/App-*/Build/Products/Release-iphoneos/App.app Payload/
-          fi
+          cp -R ios/App/build/Build/Products/Release-iphoneos/App.app Payload/
           zip -r MusicSpacePro-unsigned.ipa Payload
 
       - name: 成果物 (.ipa) のアップロード

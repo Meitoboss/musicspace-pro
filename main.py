@@ -14,8 +14,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- yt-dlp 共通設定（cookies.txt と Node.js サポートの統合） ---
-COOKIE_FILE = 'cookies.txt'
+# --- yt-dlp 共通設定（RenderのSecret Filesとローカル両対応） ---
+COOKIE_FILE = '/etc/secrets/cookies.txt' if os.path.exists('/etc/secrets/cookies.txt') else 'cookies.txt'
 
 BASE_YTDL_OPTS = {
     'quiet': True,
@@ -26,6 +26,8 @@ BASE_YTDL_OPTS = {
 if os.path.exists(COOKIE_FILE):
     BASE_YTDL_OPTS['cookiefile'] = COOKIE_FILE
     print(f"Loaded cookie file: {COOKIE_FILE}")
+else:
+    print(f"Warning: Cookie file NOT found at {COOKIE_FILE}")
 
 @app.get("/")
 def home():

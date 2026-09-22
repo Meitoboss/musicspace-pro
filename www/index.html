@@ -26,9 +26,11 @@
 }.search-bar-container { position: relative; margin-bottom: 15px; width: 100%; max-width: 500px; display: flex; gap: 10px; }.search-input { flex: 1 1 0%; padding: 14px 14px 14px 48px; border-radius: 50px; border: medium; background-color: var(--bg-input); color: var(--text-main); outline: medium; font-size: 14px; }.search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-sub); }.btn-search-trigger { background-color: var(--accent-color); color: rgb(0, 0, 0); border: medium; padding: 0px 24px; border-radius: 50px; font-weight: 700; cursor: pointer; font-size: 14px; white-space: nowrap; flex-shrink: 0; }.search-history-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 30px; }.history-tag { background-color: var(--bg-card); color: var(--text-sub); padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; border: 1px solid var(--border-card); }.history-tag:hover { color: var(--text-main); border-color: var(--accent-color); }.library-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; max-width: 800px; }.btn-add-playlist { background-color: var(--accent-color); color: rgb(0, 0, 0); border: medium; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }.playlist-list { display: flex; flex-direction: column; gap: 8px; }.playlist-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background-color: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-card); cursor: pointer; }.playlist-item:hover { background-color: var(--bg-card-hover); }.playlist-item-img { width: 48px; height: 48px; border-radius: 6px; background-size: cover; background-position: center center; background-color: rgb(36, 41, 47); display: flex; justify-content: center; align-items: center; margin-right: 14px; }.playlist-detail-header { border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px; }.btn-back { background: none; border: medium; color: var(--text-sub); cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; margin-bottom: 16px; }.title-edit-group { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }.btn-edit-title { background: none; border: medium; color: var(--text-sub); cursor: pointer; padding: 4px; }.btn-edit-title:hover { color: var(--accent-color); }.btn-shuffle-play { background-color: var(--accent-color); color: rgb(0, 0, 0); border: medium; padding: 10px 24px; border-radius: 50px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; }.track-row { display: flex; align-items: center; padding: 10px 16px; background: var(--bg-card); border-bottom: 1px solid var(--border-color); gap: 16px; }.track-row:hover { background: var(--bg-card-hover); }.sortable-ghost { opacity: 0.4; background-color: var(--bg-card-hover); }.upload-area { border: 2px dashed var(--border-card); background-color: rgba(36, 41, 47, 0.5); border-radius: 16px; padding: 40px; text-align: center; cursor: pointer; margin-bottom: 30px; }.upload-area:hover { border-color: var(--accent-color); }.settings-panel { background-color: var(--bg-card); border-radius: 12px; padding: 10px 24px; margin-bottom: 30px; }.settings-row { display: flex; justify-content: space-between; align-items: center; padding: 20px 0px; border-bottom: 1px solid var(--border-color); }.settings-row:last-child { border-bottom: medium; }.switch { position: relative; display: inline-block; width: 50px; height: 26px; }.switch input { opacity: 0; width: 0px; height: 0px; }.slider { position: absolute; cursor: pointer; inset: 0px; background-color: rgb(204, 204, 204); transition: 0.3s; border-radius: 34px; }.slider::before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: 0.3s; border-radius: 50%; }input:checked + .slider { background-color: var(--accent-color); }input:checked + .slider::before { transform: translateX(24px); }.settings-select { background-color: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; outline: medium; }.app-version-info { text-align: center; color: var(--text-sub); font-size: 12px; margin-top: 40px; padding-bottom: 20px; }.player-wrapper { position: fixed; bottom: 0px; left: 0px; width: 100%; height: 72px; background-color: rgba(11, 12, 16, 0.95); backdrop-filter: blur(10px); border-top: 1px solid var(--border-color); z-index: 999; transition: height 0.4s cubic-bezier(0.25, 1, 0.5, 1); overflow: hidden; }.player-wrapper.expanded { height: 100vh; background: radial-gradient(circle, rgb(17, 27, 14) 0%, rgb(5, 7, 10) 100%); }.player-bar { width: 100%; height: 72px; display: flex; justify-content: space-between; align-items: center; padding: 0px 20px; position: relative; z-index: 2; cursor: pointer; }.player-wrapper.expanded .player-bar { display: none; }.player-now-playing-info { flex: 1 1 0%; display: flex; flex-direction: column; justify-content: center; overflow: hidden; pointer-events: none; }.player-now-playing-info h5 { font-size: 15px; font-weight: 700; color: rgb(255, 255, 255); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0px; }.mini-btn-play { background: none; border: medium; color: rgb(255, 255, 255); display: flex; align-items: center; justify-content: center; padding: 10px; cursor: pointer; pointer-events: auto; }.mini-btn-play i { width: 28px; height: 28px; fill: currentcolor; }.mini-progress-track { position: absolute; bottom: 0px; left: 0px; width: 100%; height: 6px; background: none; z-index: 10; cursor: pointer; }.mini-progress-current { height: 100%; width: 0%; background-color: var(--accent-color); transition: width 0.1s linear; pointer-events: none; }.player-expanded-container { display: none; flex-direction: column; align-items: center; width: 100%; height: 100vh; padding: 40px 24px; box-sizing: border-box; position: relative; z-index: 2; }.player-wrapper.expanded .player-expanded-container { display: flex; }.expanded-header { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 450px; margin-bottom: 2vh; }.btn-collapse-player { background: none; border: medium; color: rgb(255, 255, 255); cursor: pointer; padding: 10px; }.expanded-artwork { width: 100%; aspect-ratio: 1 / 1; max-height: 40vh; border-radius: 16px; background-size: cover; background-position: center center; margin-bottom: 4vh; box-shadow: rgba(0, 0, 0, 0.6) 0px 10px 40px; }.expanded-info { text-align: center; width: 100%; margin-bottom: 4vh; }.expanded-info h3 { font-size: 24px; font-weight: 800; margin-bottom: 8px; color: rgb(255, 255, 255); }.expanded-info p { font-size: 16px; color: rgb(143, 148, 153); }.expanded-controls-zone { width: 100%; max-width: 450px; display: flex; flex-direction: column; gap: 24px; }.progress-container { display: flex; align-items: center; gap: 12px; width: 100%; font-size: 12px; color: rgb(143, 148, 153); }.progress-bar-hit-area { flex: 1 1 0%; padding: 12px 0px; margin: -12px 0px; cursor: pointer; display: flex; align-items: center; touch-action: none; }.progress-bar { width: 100%; height: 6px; background-color: rgb(33, 38, 45); border-radius: 3px; position: relative; pointer-events: none; }.progress-current { width: 0%; height: 100%; background-color: var(--accent-color); border-radius: 3px; pointer-events: none; }.control-buttons { display: flex; justify-content: space-between; align-items: center; padding: 0px 10px; }.btn-play { background-color: rgb(255, 255, 255); color: rgb(0, 0, 0); border: medium; width: 64px; height: 64px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; }.btn-play i { fill: rgb(0, 0, 0); }.btn-control, .btn-toggle { background: none; border: medium; color: rgb(179, 179, 179); cursor: pointer; }.btn-toggle.active-all { color: var(--accent-color); position: relative; }.btn-toggle.active-all::after { content: "•"; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); font-size: 14px; }.btn-toggle.active-one { color: var(--accent-color); position: relative; }.btn-toggle.active-one::after { content: "1"; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: bold; }.modal-overlay { position: fixed; top: 0px; left: 0px; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; }.modal-overlay.active { display: flex; }.modal-content { background: var(--bg-card); border: 1px solid var(--border-card); width: 100%; max-width: 400px; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }.modal-selector-item { padding: 12px; background: var(--bg-main); border-radius: 6px; cursor: pointer; font-weight: 600; text-align: left; border: medium; color: rgb(255, 255, 255); width: 100%; }.modal-selector-item:hover { background: var(--accent-color); color: rgb(0, 0, 0); }</style></head>
 <body>
 
-<!-- 再生用オーディオ要素（YouTubeプロキシ・ローカル音源どちらもここで直再生） -->
-<audio id="audio-player-1" class="hidden" playsinline webkit-playsinline></audio>
-<audio id="audio-player-2" class="hidden" playsinline webkit-playsinline></audio>
+<div id="yt-player-container" style="position: fixed; top: -9999px; left: -9999px; width: 300px; height: 300px; opacity: 0.01; pointer-events: none; z-index: -1;">
+    <iframe id="yt-hidden-player" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" playsinline webkit-playsinline width="300" height="300" src="about:blank"></iframe>
+</div>
+<audio id="local-audio-1" class="hidden" playsinline webkit-playsinline></audio>
+<audio id="local-audio-2" class="hidden" playsinline webkit-playsinline></audio>
 
 <button class="btn-menu-trigger" id="openMenuBtn"><i data-lucide="menu"></i></button>
 
@@ -126,7 +128,7 @@
                 </div>
             </div>
 
-            <h3 class="section-subtitle">再生設定</h3>
+            <h3 class="section-subtitle">再生 (ローカルファイル用)</h3>
             <div class="settings-panel">
                 <div class="settings-row">
                     <div><h4>ギャップレス再生</h4><p>曲間の無音をなくしてスムーズに繋ぐ</p></div>
@@ -140,7 +142,7 @@
 
             <div class="app-version-info">
                 <p style="font-weight: bold; margin-bottom: 4px;">Music space - Pro Edition</p>
-                <p>Version 2.0.0 (Proxy Engine Integrated)</p>
+                <p>Version 1.0.0 beta</p>
             </div>
         </div>
     </div>
@@ -224,7 +226,7 @@
 </div>
 
 <script>
-    // ★ 本番のFastAPI/RenderサーバーURLを設定してください
+    const YOUTUBE_API_KEY = "AIzaSyD0qeDWYwSK-S3g3-ESyGhi-UUziAjZo9g";
     const RENDER_SERVER = "https://musicspace-pro.onrender.com";
 
     let playlists = {}; 
@@ -240,62 +242,92 @@
     let currentPlaybackRate = 1.0;
     let sleepTimerId = null;
 
-    // オーディオプレイヤー（プロキシ音源・ローカルファイル共通）
-    const audio1 = document.getElementById('audio-player-1');
-    const audio2 = document.getElementById('audio-player-2');
-    let currentAudio = audio1;
+    let activePlayer = null; 
+    const localAudio1 = document.getElementById('local-audio-1');
+    const localAudio2 = document.getElementById('local-audio-2');
+    let currentLocalAudio = localAudio1;
 
     let modalTargetTrack = null;
     let currentDetailPlaylist = null;
     let progressTimer = null;
     let currentTrackData = null;
     let isPlaying = false; 
+    let ytCurrentTime = 0;
+    let ytDuration = 0;
     let isUserSeeking = false;
     
     let sortableDetail = null;
+
     let wakeLock = null;
     let lastTapTime = 0;
 
-    // オーディオの各種イベントリスナー初期設定
-    [audio1, audio2].forEach(a => {
-        a.addEventListener('play', () => { if(currentAudio === a) setPlayingState(true); });
-        a.addEventListener('pause', () => { if(currentAudio === a) setPlayingState(false); });
-        a.addEventListener('ended', () => { if(currentAudio === a) handleTrackEnded(); });
+    function sendYtCommand(func, args = []) {
+        const iframe = document.getElementById('yt-hidden-player');
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage(JSON.stringify({
+                'event': 'command',
+                'func': func,
+                'args': args
+            }), '*');
+        }
+    }
+
+    window.addEventListener('message', (event) => {
+        try {
+            const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+            if (data && data.info) {
+                if (typeof data.info.currentTime === 'number' && !isUserSeeking) {
+                    ytCurrentTime = data.info.currentTime;
+                }
+                if (typeof data.info.duration === 'number' && data.info.duration > 0) {
+                    ytDuration = data.info.duration;
+                }
+                if (data.info.playerState !== undefined && activePlayer === 'yt') {
+                    if (data.info.playerState === 1) {
+                        setPlayingState(true);
+                        sendYtCommand('setPlaybackQuality', ['tiny']);
+                        sendYtCommand('setSuggestedQuality', ['tiny']);
+                    }
+                    else if (data.info.playerState === 2) setPlayingState(false);
+                    else if (data.info.playerState === 0) handleTrackEnded();
+                }
+            }
+        } catch (e) {}
     });
 
-    // 注目リリースの取得（自作プロキシサーバーの検索APIを使用）
     async function loadTrendingMusic() {
         const grid = document.getElementById('trendingGrid');
         try {
-            const res = await fetch(`${RENDER_SERVER}/api/search?q=${encodeURIComponent('J-POP ヒットソング')}`);
+            const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&chart=mostPopular&regionCode=JP&videoCategoryId=10&maxResults=8&key=${YOUTUBE_API_KEY}`;
+            const res = await fetch(url);
             const data = await res.json();
             
-            if (data.results && data.results.length > 0) {
-                const tracks = data.results.map(item => ({
+            if (data.items && data.items.length > 0) {
+                const tracks = data.items.map(item => ({
                     id: item.id, 
-                    title: item.title, 
-                    artist: item.uploader,
-                    thumb: item.thumbnail, 
+                    title: item.snippet.title, 
+                    artist: item.snippet.channelTitle,
+                    thumb: item.snippet.thumbnails.medium ? item.snippet.thumbnails.medium.url : '', 
                     type: 'yt'
                 }));
                 displayGridResults(tracks, 'trendingGrid');
             } else {
-                grid.innerHTML = '<p style="color:#ff5c5c; font-size:14px;">注目曲を取得できませんでした。</p>';
+                grid.innerHTML = '<p style="color:#ff5c5c; font-size:14px;">トレンド情報を取得できませんでした。</p>';
             }
         } catch (e) {
             console.error(e);
-            grid.innerHTML = '<p style="color:#ff5c5c; font-size:14px;">サーバーとの通信エラーが発生しました。</p>';
+            grid.innerHTML = '<p style="color:#ff5c5c; font-size:14px;">エラーによりトレンド情報を取得できませんでした。</p>';
         }
     }
 
-    // スリープタイマー設定
     document.getElementById('sleepTimerSelect').addEventListener('change', (e) => {
         if(sleepTimerId) clearTimeout(sleepTimerId);
         const minutes = parseInt(e.target.value);
         if(minutes > 0) {
             alert(`スリープタイマーを${minutes}分後に設定しました。`);
             sleepTimerId = setTimeout(() => {
-                if(currentAudio) currentAudio.pause();
+                if(activePlayer === 'yt') sendYtCommand('pauseVideo');
+                if(activePlayer === 'local') currentLocalAudio.pause();
                 setPlayingState(false);
                 alert("スリープタイマーが作動し、再生を停止しました。");
                 document.getElementById('sleepTimerSelect').value = "0"; 
@@ -303,7 +335,6 @@
         }
     });
 
-    // サイドバーのジェスチャー操作
     let touchstartX = 0;
     let touchendX = 0;
     window.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; }, {passive: true});
@@ -328,7 +359,6 @@
         document.getElementById('playerWrapper').classList.remove('expanded');
     }
 
-    // ローカルストレージ（DB）初期化
     function initDB() {
         const req = indexedDB.open("MusicSpaceLocalDB", 1);
         req.onupgradeneeded = (e) => {
@@ -337,6 +367,12 @@
         };
         req.onsuccess = (e) => { localFilesDB = e.target.result; loadLocalTracks(); };
     }
+
+    [localAudio1, localAudio2].forEach(audioEl => {
+        audioEl.addEventListener('play', () => { if(currentLocalAudio === audioEl && activePlayer === 'local') setPlayingState(true); });
+        audioEl.addEventListener('pause', () => { if(currentLocalAudio === audioEl && activePlayer === 'local') setPlayingState(false); });
+        audioEl.addEventListener('ended', () => { if(currentLocalAudio === audioEl && activePlayer === 'local') handleTrackEnded(); });
+    });
 
     function setPlayingState(playing) {
         isPlaying = playing;
@@ -354,11 +390,11 @@
     function togglePlay(e) {
         if(e) e.stopPropagation();
         if(!currentTrackData) return;
-        if (isPlaying) {
-            currentAudio.pause();
-        } else {
-            currentAudio.play();
+        if(activePlayer === 'yt') {
+            if (isPlaying) { sendYtCommand('pauseVideo'); setPlayingState(false); } 
+            else { sendYtCommand('playVideo'); setPlayingState(true); }
         }
+        else if(activePlayer === 'local') { isPlaying ? currentLocalAudio.pause() : currentLocalAudio.play(); }
     }
 
     function handleTrackEnded() {
@@ -395,7 +431,6 @@
     document.querySelectorAll('.nextBtnClass').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); nextTrack(); }));
     document.querySelectorAll('.prevBtnClass').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); prevTrack(); }));
 
-    // 曲の再生ロジック（プロキシサーバーおよびローカルファイル統一）
     function playTrackObject(trackObj, updateQueue = true) {
         currentTrackData = trackObj;
         
@@ -415,68 +450,44 @@
         if (updateQueue) { currentQueue = [trackObj]; currentQueueIndex = 0; }
         
         if (trackObj.type === 'local') {
+            sendYtCommand('pauseVideo');
+            activePlayer = 'local';
             const req = localFilesDB.transaction('local_tracks', 'readonly').objectStore('local_tracks').get(trackObj.id);
             req.onsuccess = (e) => {
                 const data = e.target.result; if(!data) return;
                 const url = URL.createObjectURL(data.blob);
-                startAudioPlayback(url);
+                const isCross = document.getElementById('setting-crossfade').checked;
+                
+                if(isCross && isPlaying && currentLocalAudio.currentTime > 0) {
+                    const nextAudio = currentLocalAudio === localAudio1 ? localAudio2 : localAudio1;
+                    nextAudio.src = url; nextAudio.playbackRate = currentPlaybackRate; 
+                    nextAudio.play().then(() => setPlayingState(true)).catch(console.error);
+                    const fadeOutAudio = currentLocalAudio; let vol = 1.0;
+                    const fadeInt = setInterval(() => { vol -= 0.05; if(vol <= 0) { clearInterval(fadeInt); fadeOutAudio.pause(); } else fadeOutAudio.volume = vol; }, 200);
+                    currentLocalAudio = nextAudio;
+                } else {
+                    currentLocalAudio.src = url; 
+                    currentLocalAudio.playbackRate = currentPlaybackRate; 
+                    currentLocalAudio.play().then(() => {
+                        setPlayingState(true);
+                    }).catch(err => {
+                        console.error("Local play error:", err);
+                    });
+                }
             };
         } else {
-            // FastAPI プロキシ経由の直再生URLをセット
-            const url = `${RENDER_SERVER}/api/proxy/${trackObj.id}`;
-            startAudioPlayback(url);
+            localAudio1.pause(); localAudio2.pause(); activePlayer = 'yt';
+            ytCurrentTime = 0; ytDuration = 0;
+            const iframe = document.getElementById('yt-hidden-player');
+            if (iframe) {
+                iframe.src = 'about:blank';
+                setTimeout(() => {
+                    iframe.src = `${RENDER_SERVER}/player?v=${trackObj.id}&vq=tiny`;
+                }, 50);
+            }
+            setPlayingState(true);
         }
-        
         addToHistory(trackObj);
-        setupMediaSession(trackObj);
-    }
-
-    // オーディオ要素への読み込み＆クロスフェード処理
-    function startAudioPlayback(srcUrl) {
-        const isCross = document.getElementById('setting-crossfade').checked;
-
-        if(isCross && isPlaying && currentAudio.currentTime > 0) {
-            const nextAudio = currentAudio === audio1 ? audio2 : audio1;
-            nextAudio.src = srcUrl; 
-            nextAudio.playbackRate = currentPlaybackRate; 
-            nextAudio.volume = 1.0;
-            nextAudio.play().then(() => setPlayingState(true)).catch(console.error);
-            
-            const fadeOutAudio = currentAudio; 
-            let vol = 1.0;
-            const fadeInt = setInterval(() => { 
-                vol -= 0.05; 
-                if(vol <= 0) { clearInterval(fadeInt); fadeOutAudio.pause(); } 
-                else fadeOutAudio.volume = vol; 
-            }, 200);
-            
-            currentAudio = nextAudio;
-        } else {
-            currentAudio.src = srcUrl; 
-            currentAudio.playbackRate = currentPlaybackRate; 
-            currentAudio.volume = 1.0;
-            currentAudio.play().then(() => {
-                setPlayingState(true);
-            }).catch(err => {
-                console.error("Play error:", err);
-            });
-        }
-    }
-
-    // バックグラウンド・ロック画面操作設定 (MediaSession)
-    function setupMediaSession(track) {
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: track.title,
-                artist: track.artist,
-                artwork: track.thumb ? [{ src: track.thumb, sizes: '512x512', type: 'image/jpeg' }] : []
-            });
-
-            navigator.mediaSession.setActionHandler('play', () => { currentAudio.play(); });
-            navigator.mediaSession.setActionHandler('pause', () => { currentAudio.pause(); });
-            navigator.mediaSession.setActionHandler('previoustrack', () => { prevTrack(); });
-            navigator.mediaSession.setActionHandler('nexttrack', () => { nextTrack(); });
-        }
     }
 
     function playTrackIndex(idx) { if(idx >= 0 && idx < currentQueue.length) playTrackObject(currentQueue[idx], false); }
@@ -502,21 +513,23 @@
     document.getElementById('speedSlider').addEventListener('input', (e) => {
         currentPlaybackRate = parseFloat(e.target.value);
         document.getElementById('speedValueLabel').textContent = currentPlaybackRate.toFixed(1);
-        if(currentAudio) currentAudio.playbackRate = currentPlaybackRate;
+        if(activePlayer === 'yt') sendYtCommand('setPlaybackRate', [currentPlaybackRate]);
+        if(activePlayer === 'local') currentLocalAudio.playbackRate = currentPlaybackRate;
     });
 
-    // プログレスバー（再生位置）の定期更新
     function startProgressUpdate() {
         if(progressTimer) clearInterval(progressTimer);
         progressTimer = setInterval(() => {
-            if (isUserSeeking || !currentAudio) return;
-            const cur = currentAudio.currentTime || 0;
-            const dur = currentAudio.duration || 0;
-
-            if(document.getElementById('setting-gapless').checked && dur && (dur - cur < 0.2)) {
-                handleTrackEnded();
+            if (isUserSeeking) return;
+            let cur = 0, dur = 0;
+            if(activePlayer === 'yt') {
+                cur = ytCurrentTime;
+                dur = ytDuration;
+            } 
+            else if(activePlayer === 'local') {
+                cur = currentLocalAudio.currentTime; dur = currentLocalAudio.duration;
+                if(document.getElementById('setting-gapless').checked && dur && (dur - cur < 0.2)) handleTrackEnded();
             }
-
             if(dur > 0) {
                 const pct = Math.min((cur / dur) * 100, 100);
                 document.querySelectorAll('.progressBarClass').forEach(el => el.style.width = pct + '%');
@@ -527,9 +540,12 @@
     }
     function stopProgressUpdate() { if(progressTimer) clearInterval(progressTimer); }
 
-    // シークバー操作
+    // シークバー操作（タップ・スワイプ・ドラッグ対応）
     function performSeek(e, track) {
-        const dur = currentAudio ? currentAudio.duration : 0;
+        let dur = 0;
+        if(activePlayer === 'yt') dur = ytDuration;
+        else if(activePlayer === 'local' && currentLocalAudio) dur = currentLocalAudio.duration;
+
         if(!dur || dur <= 0) return;
 
         const rect = track.getBoundingClientRect();
@@ -539,11 +555,15 @@
 
         const targetTime = dur * pct;
 
+        // 即座に見た目を更新
         document.querySelectorAll('.progressBarClass').forEach(el => el.style.width = (pct * 100) + '%');
         document.querySelectorAll('.currentTimeClass').forEach(el => el.textContent = formatTime(targetTime));
 
-        if(currentAudio) {
-            currentAudio.currentTime = targetTime;
+        if(activePlayer === 'yt') {
+            ytCurrentTime = targetTime;
+            sendYtCommand('seekTo', [targetTime, true]);
+        } else if(activePlayer === 'local') {
+            currentLocalAudio.currentTime = targetTime;
         }
     }
 
@@ -607,31 +627,19 @@
         });
     }
 
-    // 楽曲検索（FastAPIサーバーの /api/search へリクエスト）
     async function searchTracks(query) {
         searchHistoryContainer.innerHTML = '';
-        const grid = document.getElementById('searchResultsGrid');
-        grid.innerHTML = '<p style="color:var(--text-sub);">検索中...</p>';
-
+        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(query + ' music')}&type=video&key=${YOUTUBE_API_KEY}`;
         try {
-            const res = await fetch(`${RENDER_SERVER}/api/search?q=${encodeURIComponent(query)}`);
-            const data = await res.json();
-            if (data.results) {
-                const tracks = data.results.map(item => ({
-                    id: item.id, 
-                    title: item.title, 
-                    artist: item.uploader,
-                    thumb: item.thumbnail, 
-                    type: 'yt'
+            const res = await fetch(url); const data = await res.json();
+            if (data.items) {
+                const tracks = data.items.map(item => ({
+                    id: item.id.videoId, title: item.snippet.title, artist: item.snippet.channelTitle,
+                    thumb: item.snippet.thumbnails.medium ? item.snippet.thumbnails.medium.url : '', type: 'yt'
                 }));
                 displayGridResults(tracks, 'searchResultsGrid');
-            } else {
-                grid.innerHTML = '<p style="color:var(--text-sub);">該当する曲が見つかりませんでした。</p>';
             }
-        } catch (e) { 
-            console.error(e); 
-            grid.innerHTML = '<p style="color:#ff5c5c;">検索エラーが発生しました。</p>';
-        }
+        } catch (e) { console.error(e); }
     }
 
     function displayGridResults(tracks, containerId) {

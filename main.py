@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,6 +13,19 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# --- yt-dlp 共通設定（cookies.txt と Node.js サポートの統合） ---
+COOKIE_FILE = 'cookies.txt'
+
+BASE_YTDL_OPTS = {
+    'quiet': True,
+    'no_warnings': True,
+    'javascript_runtimes': ['nodejs'],
+}
+
+if os.path.exists(COOKIE_FILE):
+    BASE_YTDL_OPTS['cookiefile'] = COOKIE_FILE
+    print(f"Loaded cookie file: {COOKIE_FILE}")
 
 @app.get("/")
 def home():
@@ -51,18 +65,16 @@ def player_page(v: str):
     """
     return HTMLResponse(content=html_content)
 
-# 音声ストリームURLを取得する強力な関数 (Bot対策 + 自動フォールバック)
+# 音声ストリームURLを取得する関数 (Bot対策 + 自動フォールバック)
 async def get_audio_stream_info(video_id: str):
-    # 【方法1】yt-dlp で iOS/Android アプリを装って取得を試みる
+    # 【方法1】yt-dlp で取得を試みる (cookies.txt & Node.js 統合版)
     try:
         url = f"https://www.youtube.com/watch?v={video_id}"
         ydl_opts = {
+            **BASE_YTDL_OPTS,
             'format': 'bestaudio[ext=m4a]/bestaudio',
-            'quiet': True,
-            'no_warnings': True,
             'extractor_args': {
                 'youtube': {
-                    # モバイルアプリのクライアントとしてリクエスト（Bot判定回避）
                     'player_client': ['ios', 'android', 'mweb'],
                 }
             }
@@ -125,18 +137,16 @@ async def proxy_audio(video_id: str, request: Request):
         },
         background=httpx.AsyncClient().aclose
     )
-# ==========================================
-# 3. 楽曲検索API（キーワードからYouTube動画を検索）
-# ==========================================
+
+# 3. 楽曲検索API
 @app.get("/api/search")
 async def search_music(q: str):
     ydl_opts = {
-        'extract_flat': True,  # 詳細情報は取得せず高速検索
+        **BASE_YTDL_OPTS,
+        'extract_flat': True,
         'skip_download': True,
-        'quiet': True
     }
     try:
-        # ytsearch5: で検索上位5件を取得
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(f"ytsearch5:{q}", download=False)
             results = []

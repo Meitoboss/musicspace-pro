@@ -17,13 +17,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             print("AVAudioSessionの設定に失敗しました: \(error)")
         }
 
-        // リモートコントロールイベントの受付を開始（バックグラウンド再生のサスペンド防止）
+        // リモートコントロールイベントの受付を開始（戻り値未使用の警告/エラーを回避するため `_ =` を指定）
         UIApplication.shared.beginReceivingRemoteControlEvents()
         let commandCenter = MPRemoteCommandCenter.shared()
+        
         commandCenter.playCommand.isEnabled = true
-        commandCenter.playCommand.addTarget { _ in return .success }
+        _ = commandCenter.playCommand.addTarget { _ in
+            return MPRemoteCommandHandlerStatus.success
+        }
+        
         commandCenter.pauseCommand.isEnabled = true
-        commandCenter.pauseCommand.addTarget { _ in return .success }
+        _ = commandCenter.pauseCommand.addTarget { _ in
+            return MPRemoteCommandHandlerStatus.success
+        }
 
         return true
     }

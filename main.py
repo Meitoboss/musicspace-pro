@@ -125,3 +125,29 @@ async def proxy_audio(video_id: str, request: Request):
         },
         background=httpx.AsyncClient().aclose
     )
+# ==========================================
+# 3. 楽曲検索API（キーワードからYouTube動画を検索）
+# ==========================================
+@app.get("/api/search")
+async def search_music(q: str):
+    ydl_opts = {
+        'extract_flat': True,  # 詳細情報は取得せず高速検索
+        'skip_download': True,
+        'quiet': True
+    }
+    try:
+        # ytsearch5: で検索上位5件を取得
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(f"ytsearch5:{q}", download=False)
+            results = []
+            for entry in info.get('entries', []):
+                results.append({
+                    "id": entry.get("id"),
+                    "title": entry.get("title"),
+                    "uploader": entry.get("uploader", "Unknown Artist"),
+                    "duration": entry.get("duration"),
+                    "thumbnail": f"https://i.ytimg.com/vi/{entry.get('id')}/hqdefault.jpg"
+                })
+            return {"results": results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")

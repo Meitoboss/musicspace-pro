@@ -431,7 +431,7 @@
     document.querySelectorAll('.nextBtnClass').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); nextTrack(); }));
     document.querySelectorAll('.prevBtnClass').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); prevTrack(); }));
 
-    function playTrackObject(trackObj, updateQueue = true) {
+    async function playTrackObject(trackObj, updateQueue = true) {
         currentTrackData = trackObj;
         
         document.querySelectorAll('.track-title-field').forEach(el => el.textContent = trackObj.title);
@@ -449,45 +449,70 @@
         
         if (updateQueue) { currentQueue = [trackObj]; currentQueueIndex = 0; }
         
+        // ロック画面・コントロールセンターに曲情報を送る (MediaSession API)
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: trackObj.title,
+                artist: trackObj.artist,
+                artwork: trackObj.thumb ? [{ src: trackObj.thumb }] : []
+            });
+            navigator.mediaSession.setActionHandler('play', () => togglePlay());
+            navigator.mediaSession.setActionHandler('pause', () => togglePlay());
+            navigator.mediaSession.setActionHandler('previoustrack', () => prevTrack());
+            navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
+        }
+
         if (trackObj.type === 'local') {
-            sendYtCommand('pauseVideo');
             activePlayer = 'local';
             const req = localFilesDB.transaction('local_tracks', 'readonly').objectStore('local_tracks').get(trackObj.id);
             req.onsuccess = (e) => {
                 const data = e.target.result; if(!data) return;
                 const url = URL.createObjectURL(data.blob);
-                const isCross = document.getElementById('setting-crossfade').checked;
-                
-                if(isCross && isPlaying && currentLocalAudio.currentTime > 0) {
-                    const nextAudio = currentLocalAudio === localAudio1 ? localAudio2 : localAudio1;
-                    nextAudio.src = url; nextAudio.playbackRate = currentPlaybackRate; 
-                    nextAudio.play().then(() => setPlayingState(true)).catch(console.error);
-                    const fadeOutAudio = currentLocalAudio; let vol = 1.0;
-                    const fadeInt = setInterval(() => { vol -= 0.05; if(vol <= 0) { clearInterval(fadeInt); fadeOutAudio.pause(); } else fadeOutAudio.volume = vol; }, 200);
-                    currentLocalAudio = nextAudio;
-                } else {
-                    currentLocalAudio.src = url; 
-                    currentLocalAudio.playbackRate = currentPlaybackRate; 
-                    currentLocalAudio.play().then(() => {
-                        setPlayingState(true);
-                    }).catch(err => {
-                        console.error("Local play error:", err);
-                    });
-                }
+                playAudioStream(url);
             };
         } else {
-            localAudio1.pause(); localAudio2.pause(); activePlayer = 'yt';
-            ytCurrentTime = 0; ytDuration = 0;
-            const iframe = document.getElementById('yt-hidden-player');
-            if (iframe) {
-                iframe.src = 'about:blank';
-                setTimeout(() => {
-                    iframe.src = `${RENDER_SERVER}/player?v=${trackObj.id}&vq=tiny`;
-                }, 50);
+            // YouTube動画の場合：Render APIから音声直URL(m4a)を取得して<audio>で再生
+            activePlayer = 'local';
+            try {
+                document.querySelectorAll('.track-title-field').forEach(el => el.textContent = "読み込み中... " + trackObj.title);
+                
+                const res = await fetch(`${RENDER_SERVER}/api/audio?v=${trackObj.id}`);
+                const data = await res.json();
+                
+                if (data.audio_url) {
+                    document.querySelectorAll('.track-title-field').forEach(el => el.textContent = trackObj.title);
+                    playAudioStream(data.audio_url);
+                } else {
+                    alert("音声URLの取得に失敗しました");
+                }
+            } catch (err) {
+                console.error("Audio API error:", err);
+                alert("サーバーとの通信に失敗しました");
             }
-            setPlayingState(true);
         }
         addToHistory(trackObj);
+    }
+
+    // 音声ストリーム再生処理
+    function playAudioStream(url) {
+        const isCross = document.getElementById('setting-crossfade').checked;
+        if(isCross && isPlaying && currentLocalAudio.currentTime > 0) {
+            const nextAudio = currentLocalAudio === localAudio1 ? localAudio2 : localAudio1;
+            nextAudio.src = url; 
+            nextAudio.playbackRate = currentPlaybackRate; 
+            nextAudio.play().then(() => setPlayingState(true)).catch(console.error);
+            const fadeOutAudio = currentLocalAudio; let vol = 1.0;
+            const fadeInt = setInterval(() => { vol -= 0.05; if(vol <= 0) { clearInterval(fadeInt); fadeOutAudio.pause(); } else fadeOutAudio.volume = vol; }, 200);
+            currentLocalAudio = nextAudio;
+        } else {
+            currentLocalAudio.src = url; 
+            currentLocalAudio.playbackRate = currentPlaybackRate; 
+            currentLocalAudio.play().then(() => {
+                setPlayingState(true);
+            }).catch(err => {
+                console.error("Audio play error:", err);
+            });
+        }
     }
 
     function playTrackIndex(idx) { if(idx >= 0 && idx < currentQueue.length) playTrackObject(currentQueue[idx], false); }

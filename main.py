@@ -22,7 +22,6 @@ TMP_COOKIE = '/tmp/cookies.txt'
 
 COOKIE_FILE = None
 
-# RenderのSecret FilesはRead-Onlyのため、書き込み可能な/tmp/にコピーして使用する
 if os.path.exists(SECRET_COOKIE):
     try:
         shutil.copyfile(SECRET_COOKIE, TMP_COOKIE)
@@ -84,34 +83,45 @@ def player_page(v: str):
     """
     return HTMLResponse(content=html_content)
 
-# 音声ストリームURLを取得する関数 (Bot対策 + 自動フォールバック)
+# 音声ストリームURLを取得する関数 (Bot対策強化 + 複数代替API自動フォールバック)
 async def get_audio_stream_info(video_id: str):
-    # 【方法1】yt-dlp で取得を試みる
-    try:
-        url = f"https://www.youtube.com/watch?v={video_id}"
-        ydl_opts = {
-            **BASE_YTDL_OPTS,
-            'format': 'bestaudio[ext=m4a]/bestaudio',
-            'extractor_args': {
-                'youtube': {
-                    'player_client': ['ios', 'android', 'mweb'],
+    # 【方法1】yt-dlp で取得（tv_embedded / android_vr 等を優先してBot回避）
+    player_clients_to_try = [
+        ['tv_embedded', 'android_vr', 'web_embedded'],
+        ['ios', 'mweb', 'web_creator'],
+    ]
+
+    for clients in player_clients_to_try:
+        try:
+            url = f"https://www.youtube.com/watch?v={video_id}"
+            ydl_opts = {
+                **BASE_YTDL_OPTS,
+                'format': 'bestaudio[ext=m4a]/bestaudio',
+                'extractor_args': {
+                    'youtube': {
+                        'player_client': clients,
+                    }
                 }
             }
-        }
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-            return info['url'], info.get('http_headers', {})
-    except Exception as e:
-        print(f"yt-dlp 失敗: {e} -> Piped API に自動切り替えします")
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=False)
+                if info and 'url' in info:
+                    return info['url'], info.get('http_headers', {})
+        except Exception as e:
+            print(f"yt-dlp (clients={clients}) 失敗: {e}")
 
-    # 【方法2】yt-dlp が失敗した場合、Piped API から取得する
+    print("yt-dlpが失敗したため、Piped / Invidious API に切り替えます")
+
+    # 【方法2】最新 Piped API インスタンス群
     piped_instances = [
+        "https://pipedapi.tokhmi.xyz",
+        "https://pipedapi.syncpundit.io",
+        "https://pipedapi.moomoo.me",
         "https://pipedapi.kavin.rocks",
         "https://api.piped.privacydev.net",
-        "https://pipedapi.mha.fi"
     ]
-    
-    async with httpx.AsyncClient(timeout=10.0) as client:
+
+    async with httpx.AsyncClient(timeout=8.0, follow_redirects=True) as client:
         for instance in piped_instances:
             try:
                 res = await client.get(f"{instance}/streams/{video_id}")
@@ -121,10 +131,31 @@ async def get_audio_stream_info(video_id: str):
                     if audio_streams:
                         m4a_stream = next((s for s in audio_streams if s.get("mimeType") == "audio/mp4"), audio_streams[0])
                         return m4a_stream["url"], {"User-Agent": "Mozilla/5.0"}
-            except Exception:
-                continue
+            except Exception as e:
+                print(f"Piped ({instance}) エラー: {e}")
 
-    raise RuntimeError("すべてのソースから音声の取得に失敗しました。")
+    # 【方法3】Invidious API インスタンス群 (追加のバックアップ)
+    invidious_instances = [
+        "https://inv.tux.pizza",
+        "https://invidious.nerdvpn.de",
+        "https://invidious.drgns.space",
+    ]
+
+    async with httpx.AsyncClient(timeout=8.0, follow_redirects=True) as client:
+        for instance in invidious_instances:
+            try:
+                res = await client.get(f"{instance}/api/v1/videos/{video_id}")
+                if res.status_code == 200:
+                    data = res.json()
+                    adaptive_formats = data.get("adaptiveFormats", [])
+                    audio_streams = [f for f in adaptive_formats if f.get("type", "").startswith("audio/")]
+                    if audio_streams:
+                        m4a_stream = next((s for s in audio_streams if "container=m4a" in s.get("type", "") or s.get("encoding") == "aac"), audio_streams[0])
+                        return m4a_stream["url"], {"User-Agent": "Mozilla/5.0"}
+            except Exception as e:
+                print(f"Invidious ({instance}) エラー: {e}")
+
+    raise RuntimeError("すべてのソース（yt-dlp, Piped, Invidious）から音声の取得に失敗しました。")
 
 # 2. モバイルアプリ用 音声ストリームプロキシ
 @app.get("/api/proxy/{video_id}")
@@ -165,7 +196,7 @@ async def search_music(q: str):
         'skip_download': True,
         'extractor_args': {
             'youtube': {
-                'player_client': ['ios', 'android', 'mweb'],
+                'player_client': ['tv_embedded', 'android_vr', 'web_embedded'],
             }
         }
     }

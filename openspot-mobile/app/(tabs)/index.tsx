@@ -6,82 +6,36 @@ import { TopBar } from '@/components/TopBar';
 import { MusicPlayerContext } from './_layout';
 import { MusicAPI } from '@/lib/music-api';
 import { Track } from '@/types/music';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useLikedSongs } from '@/hooks/useLikedSongs';
 import { HorizontalTrackList } from '@/components/HorizontalTrackList';
-import { useRouter } from 'expo-router';
+import { useRouter , useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { COUNTRY_NAMES } from '@/constants/countryNames';
 import { useTranslation } from 'react-i18next';
+import { useThemeMode, ThemeMode } from '@/hooks/theme-mode';
 import { useConnectivity } from '@/hooks/useConnectivity';
+import { GreetingHeader } from '@/components/GreetingHeader';
+import { QuickActions } from '@/components/QuickActions';
 import { SectionHeader } from '@/components/SectionHeader';
 
 const KWORD_URL = 'https://kworb.net/spotify/';
-const REGION_URL_MAP_KEY = 'musicspace_region_url_map_v1';
-const REGION_URL_MAP_TIMESTAMP_KEY = 'musicspace_region_url_map_ts_v1';
+const REGION_URL_MAP_KEY = 'openspot_region_url_map_v1';
+const REGION_URL_MAP_TIMESTAMP_KEY = 'openspot_region_url_map_ts_v1';
 const REGION_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const TRENDING_TRACKS_CACHE_KEY = 'TRENDING_TRACKS_CACHE_V1';
-const REGION_OVERRIDE_KEY = 'musicspace_region_override_v1';
-const LANGUAGE_KEY = 'musicspace_language_v1';
-const FIRST_RUN_SETUP_KEY = 'musicspace_first_run_setup_done_v1';
-const TRENDING_ENABLED_KEY = 'musicspace_trending_enabled_v1';
-
-// ブランドアイコン (React Native Viewで再現)
-function BrandIcon({ color, accentColor }: { color: string; accentColor: string }) {
-  return (
-    <View style={brandIconStyles.container}>
-      <View style={[brandIconStyles.outerBar, { borderColor: color }]} />
-      <View style={[brandIconStyles.innerBar, { borderColor: accentColor }]} />
-      <View style={[brandIconStyles.coreBar, { borderColor: color }]} />
-    </View>
-  );
-}
-
-const brandIconStyles = StyleSheet.create({
-  container: {
-    width: 32,
-    height: 32,
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  outerBar: {
-    position: 'absolute',
-    bottom: 2,
-    width: 30,
-    height: 18,
-    borderWidth: 2,
-    borderBottomLeftRadius: 15,
-    borderBottomRightRadius: 15,
-    borderTopWidth: 0,
-  },
-  innerBar: {
-    position: 'absolute',
-    bottom: 6,
-    width: 20,
-    height: 13,
-    borderWidth: 2,
-    borderBottomLeftRadius: 10,
-    borderBottomRightRadius: 10,
-    borderTopWidth: 0,
-  },
-  coreBar: {
-    position: 'absolute',
-    bottom: 10,
-    width: 11,
-    height: 8,
-    borderWidth: 2,
-    borderBottomLeftRadius: 6,
-    borderBottomRightRadius: 6,
-    borderTopWidth: 0,
-  },
-});
+const REGION_OVERRIDE_KEY = 'openspot_region_override_v1';
+const LANGUAGE_KEY = 'openspot_language_v1';
+const FIRST_RUN_SETUP_KEY = 'openspot_first_run_setup_done_v1';
+const TRENDING_ENABLED_KEY = 'openspot_trending_enabled_v1';
 
 export default function HomeScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const { t, i18n } = useTranslation();
+  const { mode, setMode } = useThemeMode();
   const isDark = colorScheme !== 'light';
   const theme = useMemo(
     () => ({
@@ -99,7 +53,7 @@ export default function HomeScreen() {
   const [currentView, setCurrentView] = React.useState<'home' | 'search'>('home');
   const searchState = useSearch();
   const { clearResults } = searchState;
-  const { handleTrackSelect, isPlaying, currentTrack } = useContext(MusicPlayerContext);
+  const { handleTrackSelect, musicQueue, isPlaying, currentTrack } = useContext(MusicPlayerContext);
   const [trendingTracks, setTrendingTracks] = useState<Track[]>([]);
   const { getLikedSongsAsTrack } = useLikedSongs();
   const likedTracks = getLikedSongsAsTrack();
@@ -112,6 +66,7 @@ export default function HomeScreen() {
   const [showFirstRunSetup, setShowFirstRunSetup] = useState(false);
   const [setupRegion, setSetupRegion] = useState<string>('auto');
   const [setupLanguage, setSetupLanguage] = useState<string>('en');
+  const [setupTheme, setSetupTheme] = useState<ThemeMode>(mode);
   const [isSavingSetup, setIsSavingSetup] = useState(false);
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
   const [isRegionModalOpen, setIsRegionModalOpen] = useState(false);
@@ -133,6 +88,7 @@ export default function HomeScreen() {
     { label: 'Korean', value: 'ko', nativeLabel: '한국어' },
   ];
 
+  
   useEffect(() => {
     (async () => {
       try {
@@ -170,6 +126,10 @@ export default function HomeScreen() {
       }
     })();
   }, []);
+
+  useEffect(() => {
+    setSetupTheme(mode);
+  }, [mode]);
 
   useEffect(() => {
     if (!isOffline && wasOfflineRef.current) {
@@ -260,9 +220,11 @@ export default function HomeScreen() {
     let isMounted = true;
 
     const fetchTrendingTracks = async (list: string[]) => {
+
       let cache = { ...trendingCache };
       const tracks: Track[] = [];
       let cacheChanged = false;
+
 
       for (const entry of list) {
         if (cache[entry]) {
@@ -270,9 +232,11 @@ export default function HomeScreen() {
         }
       }
 
+
       if (isMounted) {
         setTrendingTracks([...tracks]);
       }
+
 
       for (const entry of list) {
         if (!cache[entry]) {
@@ -282,6 +246,7 @@ export default function HomeScreen() {
               cache[entry] = res.tracks[0];
               tracks.push(res.tracks[0]);
               cacheChanged = true;
+
 
               if (isMounted) {
                 setTrendingTracks([...tracks]);
@@ -324,11 +289,11 @@ export default function HomeScreen() {
 
     if (!countryLoading && activeRegion && activeRegion !== 'your country') {
       const activeKey = activeRegion.toLowerCase();
-      const regionKey = Object.keys(regionUrlMap).find((k) => k.toLowerCase() === activeKey);
+      const regionKey = Object.keys(regionUrlMap).find(k => k.toLowerCase() === activeKey);
       if (regionKey && regionUrlMap[regionKey]) {
         fetchKworbWeekly(regionUrlMap[regionKey]);
       } else {
-        const globalKey = Object.keys(regionUrlMap).find((k) => k.toLowerCase() === 'global');
+        const globalKey = Object.keys(regionUrlMap).find(k => k.toLowerCase() === 'global');
         if (globalKey && regionUrlMap[globalKey]) {
           fetchKworbWeekly(regionUrlMap[globalKey]);
         } else {
@@ -338,9 +303,7 @@ export default function HomeScreen() {
     } else {
       if (isMounted) setTrendingTracks([]);
     }
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [activeRegion, countryLoading, regionUrlMap, trendingCache]);
 
   const handleViewChange = (view: 'home' | 'search') => {
@@ -365,6 +328,7 @@ export default function HomeScreen() {
       await AsyncStorage.setItem(LANGUAGE_KEY, setupLanguage);
       await AsyncStorage.setItem(FIRST_RUN_SETUP_KEY, '1');
       await i18n.changeLanguage(setupLanguage);
+      setMode(setupTheme);
       setRegionOverride(setupRegion);
       setShowFirstRunSetup(false);
     } catch (error) {
@@ -385,6 +349,21 @@ export default function HomeScreen() {
     [handleTrackSelect]
   );
 
+  const handleShuffleLiked = React.useCallback(() => {
+    if (likedTracks.length > 0) {
+      const randomIndex = Math.floor(Math.random() * likedTracks.length);
+      handleHomeTrackSelect(likedTracks[randomIndex], likedTracks, randomIndex);
+    }
+  }, [likedTracks, handleHomeTrackSelect]);
+
+  const handleLibraryNav = React.useCallback(() => {
+    router.push('/library');
+  }, [router]);
+
+  const handleDownloadsNav = React.useCallback(() => {
+    router.push('/downloads');
+  }, [router]);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={theme.background} translucent={false} />
@@ -402,11 +381,12 @@ export default function HomeScreen() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            {/* 左アイコン付き MusicSpace ヘッダー */}
-            <View style={styles.brandHeaderContainer}>
-              <BrandIcon color={theme.textPrimary} accentColor={theme.accent} />
-              <Text style={[styles.brandHeaderText, { color: theme.textPrimary }]}>MusicSpace</Text>
-            </View>
+            <GreetingHeader />
+            <QuickActions
+              onShuffleLiked={handleShuffleLiked}
+              onDownloads={handleDownloadsNav}
+              onLibrary={handleLibraryNav}
+            />
 
             {trendingEnabled && (
               <View>
@@ -431,8 +411,8 @@ export default function HomeScreen() {
               </View>
             )}
 
-            <View style={{ marginTop: 12 }}>
-              <SectionHeader title={t('home.liked_songs')} />
+            <View style={{ marginTop: 16 }}>
+              <SectionHeader title={t('home.liked_songs')} onSeeAll={handleLibraryNav} />
               {likedTracks.length > 0 ? (
                 <HorizontalTrackList
                   title=""
@@ -451,7 +431,7 @@ export default function HomeScreen() {
               )}
             </View>
 
-            <View style={{ marginTop: 12 }}>
+            <View style={{ marginTop: 16 }}>
               <SectionHeader title={t('home.continue_listening')} />
               {recentlyPlayedTracks.length > 0 ? (
                 <HorizontalTrackList
@@ -471,13 +451,12 @@ export default function HomeScreen() {
               )}
             </View>
 
-            <View style={{ height: 60 }} />
+            <View style={{ height: 140 }} />
           </ScrollView>
         ) : (
           <></>
         )}
       </View>
-
       <Modal visible={showFirstRunSetup} transparent animationType="fade">
         <View style={styles.setupOverlay}>
           <View style={[styles.setupCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -507,6 +486,30 @@ export default function HomeScreen() {
               </Text>
               <Ionicons name="chevron-down" size={16} color={theme.textSecondary} />
             </TouchableOpacity>
+
+            <Text style={[styles.setupSectionTitle, { color: theme.textPrimary }]}>{t('settings.theme')}</Text>
+            <View style={styles.setupRow}>
+              {[
+                { label: t('components.theme_light'), value: 'light' as ThemeMode },
+                { label: t('components.theme_dark'), value: 'dark' as ThemeMode },
+                { label: t('components.theme_auto'), value: 'auto' as ThemeMode },
+              ].map((themeOption) => {
+                const active = setupTheme === themeOption.value;
+                return (
+                  <TouchableOpacity
+                    key={`setup-theme-${themeOption.value}`}
+                    style={[
+                      styles.setupSegment,
+                      { borderColor: theme.border, backgroundColor: theme.surfaceElevated },
+                      active && { backgroundColor: theme.accent, borderColor: theme.accent },
+                    ]}
+                    onPress={() => setSetupTheme(themeOption.value)}
+                  >
+                    <Text style={[styles.setupSegmentText, { color: active ? '#fff' : theme.textSecondary }]}>{themeOption.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
 
             <TouchableOpacity
               style={[styles.setupContinueButton, { backgroundColor: theme.accent }]}
@@ -611,20 +614,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   mainContent: {
-    paddingTop: 4,
+    paddingTop: 10,
     flex: 1,
-  },
-  brandHeaderContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 10,
-  },
-  brandHeaderText: {
-    fontSize: 22,
-    fontWeight: '900',
-    letterSpacing: -0.5,
   },
   setupOverlay: {
     flex: 1,
@@ -650,6 +641,37 @@ const styles = StyleSheet.create({
     marginTop: 14,
     marginBottom: 8,
     fontSize: 14,
+    fontWeight: '700',
+  },
+  setupWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  setupChip: {
+    borderWidth: 1,
+    borderRadius: 15,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  setupChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  setupRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  setupSegment: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 40,
+  },
+  setupSegmentText: {
+    fontSize: 13,
     fontWeight: '700',
   },
   setupDropdownButton: {
@@ -714,7 +736,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   scrollContent: {
-    paddingBottom: 16,
+    paddingBottom: 22,
   },
   emptyBox: {
     marginHorizontal: 16,

@@ -13,8 +13,8 @@ jobs:
     env:
       CI: "1"
       NODE_ENV: "production"
-      APP_NAME: "MusicSpace"
-      SCHEME_NAME: "MusicSpace"
+      APP_NAME: "OpenSpot"
+      SCHEME_NAME: "OpenSpot"
       EXPO_PUBLIC_API_BASE_URL: ${{ secrets.EXPO_PUBLIC_API_BASE_URL }}
       EXPO_PUBLIC_YT_API_INSTANCES: ${{ secrets.EXPO_PUBLIC_YT_API_INSTANCES }}
 
@@ -67,30 +67,6 @@ jobs:
           cd ios
           export RCT_NEW_ARCH_ENABLED=1
           pod install --repo-update
-
-      - name: Patch fmt library for Xcode consteval issue
-        run: |
-          chmod -R +w ios/Pods/fmt || true
-          python3 -c "
-          import os, stat
-          fmt_dir = 'ios/Pods/fmt'
-          if os.path.exists(fmt_dir):
-              for root, _, files in os.walk(fmt_dir):
-                  for file in files:
-                      if file.endswith('.h'):
-                          path = os.path.join(root, file)
-                          try:
-                              os.chmod(path, stat.S_IWRITE | stat.S_IREAD)
-                              with open(path, 'r', encoding='utf-8', errors='ignore') as f:
-                                  content = f.read()
-                              if 'FMT_USE_CONSTEVAL' in content:
-                                  patched = content.replace('FMT_USE_CONSTEVAL 1', 'FMT_USE_CONSTEVAL 0')
-                                  with open(path, 'w', encoding='utf-8') as f:
-                                      f.write(patched)
-                                  print(f'Patched: {path}')
-                          except Exception as e:
-                              print(f'Failed {path}: {e}')
-          "
 
       - name: Bundle JS (Hermes production)
         run: |

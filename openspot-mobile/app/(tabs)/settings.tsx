@@ -4,22 +4,31 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  Linking,
   ScrollView,
+  ActivityIndicator,
   Modal,
   FlatList,
+  Share,
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 import { useTranslation } from 'react-i18next';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { ThemeMode, useThemeMode } from '@/hooks/theme-mode';
 import { useApiStatus } from '@/hooks/useApiStatus';
 import { useToast } from '@/hooks/useToast';
-
-const CURRENT_VERSION = '1.0.0';
+const CURRENT_VERSION = '3.1.5';
+const LINKEDIN_URL = 'https://www.linkedin.com/in/jash-gro/';
+const TELEGRAM_URL = 'https://telegram.dog/deveIoper_x';
+const INSTAGRAM_URL = 'https://www.instagram.com/jash_gro/';
+const YOUTUBE_URL = 'https://www.youtube.com/@nerdsClub';
+const TWITTER_URL = 'https://twitter.com/jash_gro';
+const GITHUB_URL = 'https://github.com/BlackHatDevX';
 const UPDATE_CONFIG_URL = 'https://raw.githubusercontent.com/BlackHatDevX/openspot-config/refs/heads/main/update-mobile.json';
 const KWORD_URL = 'https://kworb.net/spotify/';
 const REGION_OVERRIDE_KEY = 'openspot_region_override_v1';
@@ -50,6 +59,8 @@ export default function SettingsScreen() {
   const { mode, setMode } = useThemeMode();
   const { t, i18n } = useTranslation();
 
+  const [latestVersion, setLatestVersion] = useState<string | null>(null);
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
   const [region, setRegion] = useState<string>('auto');
   const [regionOptions, setRegionOptions] = useState<string[]>(['auto']);
   const [language, setLanguage] = useState<string>('en');
@@ -60,12 +71,13 @@ export default function SettingsScreen() {
   const [isRegionModalOpen, setIsRegionModalOpen] = useState(false);
   const [updateConfig, setUpdateConfig] = useState<UpdateConfig | null>(null);
   const [showForceUpdate, setShowForceUpdate] = useState(false);
+  const [showChangelog, setShowChangelog] = useState(false);
   const [showBetaWarning, setShowBetaWarning] = useState(false);
   const [pendingProvider, setPendingProvider] = useState<string | null>(null);
   const { isProviderDisabled } = useApiStatus();
   const { toastMessage, toastType, showToast } = useToast();
 
-  const currentVersion = CURRENT_VERSION;
+  const currentVersion = Constants.expoConfig?.version ?? CURRENT_VERSION;
 
   const compareVersions = (v1: string, v2: string): number => {
     const parts1 = v1.split('.').map(Number);
@@ -86,6 +98,10 @@ export default function SettingsScreen() {
   const isVersionSupported = platformUpdateConfig
     ? compareVersions(currentVersion, platformUpdateConfig.min_supported_version) >= 0
     : true;
+
+  const updateAvailable = platformUpdateConfig
+    ? compareVersions(platformUpdateConfig.latest_version, currentVersion) > 0
+    : false;
 
   const theme = useMemo(
     () => ({
@@ -147,12 +163,15 @@ export default function SettingsScreen() {
   };
 
   const checkForUpdates = useCallback(async () => {
+    setIsCheckingUpdate(true);
     try {
       const res = await fetch(UPDATE_CONFIG_URL);
       const data: UpdateConfig = await res.json();
       setUpdateConfig(data);
 
       const platformConfig = Platform.OS === 'ios' ? data.ios : data.android;
+      setLatestVersion(platformConfig.latest_version);
+
       const isSupported = compareVersions(currentVersion, platformConfig.min_supported_version) >= 0;
       const hasUpdate = compareVersions(platformConfig.latest_version, currentVersion) > 0;
 
@@ -161,6 +180,8 @@ export default function SettingsScreen() {
       }
     } catch (error) {
       console.error('Update check failed:', error);
+    } finally {
+      setIsCheckingUpdate(false);
     }
   }, [currentVersion]);
 
@@ -415,11 +436,119 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Version Card */}
         <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>{t('settings.version')}</Text>
-          <Text style={[styles.cardText, { color: theme.textSecondary }]}>Current: v1.0.0</Text>
-          <Text style={[styles.cardText, { color: theme.textSecondary }]}>Latest: v1.0.0</Text>
+          <Text style={[styles.cardText, { color: theme.textSecondary }]}>Current: v{currentVersion}</Text>
+          {latestVersion && (
+            <Text style={[styles.cardText, { color: updateAvailable ? theme.accent : theme.textSecondary }]}>
+              Latest: v{latestVersion}
+              {updateAvailable && !isVersionSupported && ' (Update Required)'}
+              {updateAvailable && isVersionSupported && ' (Update Available)'}
+            </Text>
+          )}
+          {!isVersionSupported && (
+            <Text style={[styles.cardText, { color: '#ff4444', marginTop: 4 }]}>
+              Your version is no longer supported. Please update to continue.
+            </Text>
+          )}
+          <View style={styles.versionButtonsRow}>
+            <TouchableOpacity style={[styles.primaryButton, { backgroundColor: theme.accent, flex: 1 }]} onPress={checkForUpdates}>
+              {isCheckingUpdate ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.primaryButtonText}>Check</Text>
+              )}
+            </TouchableOpacity>
+            {platformUpdateConfig && (
+              <TouchableOpacity style={[styles.secondaryButton, { borderColor: theme.border, flex: 1, marginLeft: 8 }]} onPress={() => setShowChangelog(true)}>
+                <Text style={[styles.secondaryButtonText, { color: theme.textPrimary }]}>Changelog</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          {updateAvailable && platformUpdateConfig && (
+            <TouchableOpacity style={[styles.primaryButton, { backgroundColor: '#ff4444', marginTop: 8 }]} onPress={() => Linking.openURL(platformUpdateConfig.release_url)}>
+              <Text style={styles.primaryButtonText}>Update Now</Text>
+            </TouchableOpacity>
+          )}
+
+          <View style={[styles.shareSection, { borderTopColor: theme.border }]}>
+            <Text style={[styles.shareTitle, { color: theme.textPrimary }]}>{t('settings.share_with_friends')}</Text>
+            <Text style={[styles.shareText, { color: theme.textSecondary }]}>
+              {t('settings.share_description')}
+            </Text>
+            <TouchableOpacity
+              style={[styles.shareButton, { backgroundColor: theme.accent }]}
+              onPress={async () => {
+                const shareUrl = platformUpdateConfig?.release_url
+                  || (Platform.OS === 'ios'
+                    ? `https://github.com/BlackHatDevX/openspot-music-app/releases/download/v${currentVersion}/OpenSpot-${currentVersion}-release.ipa`
+                    : `https://github.com/BlackHatDevX/openspot-music-app/releases/download/v${currentVersion}/OpenSpot-${currentVersion}-release.apk`);
+                try {
+                  await Share.share({
+                    message: `${t('settings.share_message')}\n\n${shareUrl}`,
+                  });
+                } catch {
+                  // User cancelled or failed
+                }
+              }}
+            >
+              <Ionicons name="share-social" size={18} color="#fff" style={styles.shareButtonIcon} />
+              <Text style={styles.shareButtonText}>{t('settings.share_app')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>{t('settings.connect')}</Text>
+          <Text style={[styles.cardText, { color: theme.textSecondary, marginBottom: 12 }]}>
+            {t('settings.connect_description')}
+          </Text>
+          <View style={styles.socialButtonsRow}>
+            <TouchableOpacity style={styles.socialButton} onPress={() => Linking.openURL(LINKEDIN_URL)}>
+              <Ionicons name="logo-linkedin" size={24} color={theme.accent} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.socialButton} onPress={() => Linking.openURL(TELEGRAM_URL)}>
+              <Ionicons name="send" size={24} color={theme.accent} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.socialButton} onPress={() => Linking.openURL(INSTAGRAM_URL)}>
+              <Ionicons name="logo-instagram" size={24} color={theme.accent} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.socialButton} onPress={() => Linking.openURL(GITHUB_URL)}>
+              <Ionicons name="logo-github" size={24} color={theme.accent} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.socialButton} onPress={() => Linking.openURL(TWITTER_URL)}>
+              <Ionicons name="logo-twitter" size={24} color={theme.accent} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>{t('settings.stay_updated')}</Text>
+          <Text style={[styles.cardText, { color: theme.textSecondary, marginBottom: 12 }]}>
+            {t('settings.stay_updated_description')}
+          </Text>
+          <View style={styles.updateButtonsRow}>
+            <TouchableOpacity
+              style={[styles.updateButton, { backgroundColor: theme.accent, flex: 1, marginRight: 8 }]}
+              onPress={() => Linking.openURL(TELEGRAM_URL)}
+            >
+              <Ionicons name="send" size={18} color="#fff" style={styles.updateButtonIcon} />
+              <Text style={styles.updateButtonText}>{t('settings.telegram')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.updateButton, { backgroundColor: '#ff0000', flex: 1 }]}
+              onPress={() => Linking.openURL(YOUTUBE_URL)}
+            >
+              <Ionicons name="logo-youtube" size={18} color="#fff" style={styles.updateButtonIcon} />
+              <Text style={styles.updateButtonText}>{t('settings.youtube')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.footer}>
+          <Text style={[styles.footerText, { color: theme.textSecondary }]}>
+            Made with <Text style={{ color: '#ff4444' }}>❤</Text> by @jashgro
+          </Text>
         </View>
       </ScrollView>
 
@@ -466,7 +595,8 @@ export default function SettingsScreen() {
         </View>
       </Modal>
 
-      <Modal
+      {/* Force Update Modal */}
+            <Modal
         visible={isRegionModalOpen}
         transparent
         animationType="fade"
@@ -509,17 +639,61 @@ export default function SettingsScreen() {
         </View>
       </Modal>
 
-      {/* Force Update Modal */}
-      <Modal visible={showForceUpdate} transparent animationType="fade">
+      <Modal
+        visible={showForceUpdate} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={[styles.updateModalCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <Ionicons name="warning" size={48} color="#ff4444" style={{ alignSelf: 'center', marginBottom: 12 }} />
             <Text style={[styles.cardTitle, { color: theme.textPrimary, textAlign: 'center', fontSize: 18 }]}>
-              Update Required
+              {!isVersionSupported ? 'Update Required' : 'Update Available'}
             </Text>
             <Text style={[styles.cardText, { color: theme.textSecondary, textAlign: 'center', marginBottom: 16 }]}>
-              Your version (v{currentVersion}) is no longer supported. Please update to continue.
+              {!isVersionSupported
+                ? `Your version (v${currentVersion}) is no longer supported. Minimum required: v${platformUpdateConfig?.min_supported_version}`
+                : `A new version (v${platformUpdateConfig?.latest_version}) is available. Please update to continue.`}
             </Text>
+            {platformUpdateConfig?.changelog && platformUpdateConfig.changelog[platformUpdateConfig.latest_version] && (
+              <View style={[styles.changelogBox, { backgroundColor: theme.surfaceElevated }]}>
+                <Text style={[styles.changelogTitle, { color: theme.textPrimary }]}>What&apos;s New:</Text>
+                {platformUpdateConfig.changelog[platformUpdateConfig.latest_version].map((item, idx) => (
+                  <Text key={idx} style={[styles.changelogItem, { color: theme.textSecondary }]}>
+                    • {item}
+                  </Text>
+                ))}
+              </View>
+            )}
+            <TouchableOpacity
+              style={[styles.primaryButton, { backgroundColor: '#ff4444', marginTop: 16 }]} 
+              onPress={() => Linking.openURL(platformUpdateConfig?.release_url || '')}
+            >
+              <Text style={styles.primaryButtonText}>Update Now</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Changelog Modal */}
+      <Modal visible={showChangelog} transparent animationType="fade" onRequestClose={() => setShowChangelog(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.changelogModalCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.cardTitle, { color: theme.textPrimary, marginBottom: 12 }]}>Changelog</Text>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {platformUpdateConfig?.changelog && Object.entries(platformUpdateConfig.changelog)
+                .sort(([a], [b]) => compareVersions(b, a))
+                .map(([version, items]) => (
+                  <View key={version} style={styles.changelogVersion}>
+                    <Text style={[styles.changelogVersionTitle, { color: theme.textPrimary }]}>v{version}</Text>
+                    {items.map((item, idx) => (
+                      <Text key={idx} style={[styles.changelogItem, { color: theme.textSecondary }]}>
+                        • {item}
+                      </Text>
+                    ))}
+                  </View>
+                ))}
+            </ScrollView>
+            <TouchableOpacity style={styles.cancelButtonRow} onPress={() => setShowChangelog(false)}>
+              <Text style={{ color: theme.textPrimary, fontSize: 15 }}>{t('common.close')}</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -535,6 +709,10 @@ export default function SettingsScreen() {
             <Text style={[styles.cardText, { color: theme.textSecondary, textAlign: 'center', marginBottom: 16 }]}>
               {t('settings.beta_warning_description')}
             </Text>
+            <TouchableOpacity style={styles.betaLinkRow} onPress={() => Linking.openURL('https://t.me/openspot_music/15')}>
+              <Text style={[styles.betaLinkText, { color: theme.accent }]}>{t('settings.beta_warning_link')}</Text>
+              <Ionicons name="arrow-forward" size={16} color={theme.accent} />
+            </TouchableOpacity>
             <View style={styles.betaButtonRow}>
               <TouchableOpacity
                 style={[styles.secondaryButton, { borderColor: theme.border, flex: 1, marginRight: 8 }]}
@@ -675,12 +853,23 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingVertical: 8,
   },
+
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 16,
+  },
+  linkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 4,
+  },
+  linkText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
   toggleRow: {
     flexDirection: 'row',
@@ -703,12 +892,56 @@ const styles = StyleSheet.create({
   toggleThumbOn: {
     alignSelf: 'flex-end',
   },
+  footer: {
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  footerText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  versionButtonsRow: {
+    flexDirection: 'row',
+    marginTop: 10,
+  },
   updateModalCard: {
     width: '90%',
     maxHeight: '80%',
     borderWidth: 1,
     borderRadius: 16,
     padding: 20,
+  },
+  changelogModalCard: {
+    width: '90%',
+    maxHeight: '70%',
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 14,
+  },
+  changelogBox: {
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 8,
+  },
+  changelogTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  changelogVersion: {
+    marginBottom: 16,
+  },
+  changelogVersionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  changelogItem: {
+    fontSize: 13,
+    marginLeft: 8,
+    marginBottom: 4,
+    lineHeight: 18,
   },
   toastContainer: {
     position: 'absolute',
@@ -742,8 +975,82 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
   },
+  betaLinkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  betaLinkText: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginRight: 4,
+  },
   betaButtonRow: {
     flexDirection: 'row',
     width: '100%',
+  },
+  socialButtonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 8,
+  },
+  socialButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  updateButtonsRow: {
+    flexDirection: 'row',
+    marginTop: 8,
+  },
+  updateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  updateButtonIcon: {
+    marginRight: 8,
+  },
+  updateButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  shareSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+  },
+  shareTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  shareText: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  shareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  shareButtonIcon: {
+    marginRight: 8,
+  },
+  shareButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });

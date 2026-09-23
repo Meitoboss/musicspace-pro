@@ -71,15 +71,13 @@ export default function TabLayout() {
   const { toastMessage, toastType, showToast } = useToast();
 
   const isIOS = Platform.OS === 'ios';
-  
-  // タブバーのテーマ設定（全体黒、上部白線、非選択時白、選択時緑保持）
   const tabTheme = useMemo(
     () => ({
-      background: '#000000',
-      border: '#ffffff',
+      background: isDark ? '#121212' : '#fffaf2',
+      border: isDark ? '#272727' : '#e4d5c5',
       active: isDark ? (isIOS ? '#038434' : '#1DB954') : '#167c3a',
-      inactive: '#ffffff',
-      safeArea: '#000000',
+      inactive: isDark ? (isIOS ? '#646464' : '#9a9a9a') : '#7a6251',
+      safeArea: isDark ? '#050505' : '#f5efe6',
     }),
     [isDark, isIOS]
   );
@@ -162,7 +160,9 @@ export default function TabLayout() {
       return;
     }
 
+
     setIsPlaying(false);
+
     pendingAutoPlayRef.current = true;
 
     if (trackList && startIndex !== undefined) {
@@ -232,6 +232,7 @@ export default function TabLayout() {
                 backgroundColor: tabTheme.background,
                 borderTopWidth: 1,
                 borderTopColor: tabTheme.border,
+                // height: insets.bottom,
               },
               tabBarLabelStyle: {
                 paddingBottom: 0,

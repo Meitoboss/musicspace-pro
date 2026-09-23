@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "MusicSpace",
-    "slug": "MusicSpace",
+    "name": "OpenSpot",
+    "slug": "OpenSpot",
     "version": "3.1.5",
     "orientation": "default",
     "icon": "./assets/images/icon.png",

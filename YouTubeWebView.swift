@@ -6,7 +6,6 @@ struct YouTubeWebView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> WKWebView {
         let configuration = WKWebViewConfiguration()
-        // インライン再生（全画面化しない）とバックグラウンド再生を許可
         configuration.allowsInlineMediaPlayback = true
         configuration.mediaTypesRequiringUserActionForPlayback = []
 
@@ -15,17 +14,24 @@ struct YouTubeWebView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: WKWebView, context: Context) {
-        // YouTubeの埋め込みプレイヤーURLを読み込む
+        // origin=https://www.youtube.com を追加して 152-4 エラーを防止
         let embedHTML = """
         <!DOCTYPE html>
         <html>
+        <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
         <body style="margin:0;padding:0;background-color:black;">
             <iframe id="player" type="text/html" width="100%" height="100%"
-            src="https://www.youtube.com/embed/\(videoId)?enablejsapi=1&playsinline=1&autoplay=1"
-            frameborder="0"></iframe>
+            src="https://www.youtube.com/embed/\(videoId)?enablejsapi=1&playsinline=1&autoplay=1&origin=https://www.youtube.com"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen></iframe>
         </body>
         </html>
         """
+        
+        // baseURL に https://www.youtube.com を指定
         uiView.loadHTMLString(embedHTML, baseURL: URL(string: "https://www.youtube.com"))
     }
 }

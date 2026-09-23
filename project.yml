@@ -11,11 +11,10 @@ targets:
       - path: .
         includes:
           - "*.swift"
+    info:
+      path: Info.plist
     settings:
       base:
-        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_UIBackgroundModes: "audio"
         PRODUCT_BUNDLE_IDENTIFIER: com.musicspace.app
         DEVELOPMENT_TEAM: ""
         CODE_SIGNING_REQUIRED: NO

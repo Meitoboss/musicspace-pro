@@ -68,6 +68,25 @@ jobs:
           export RCT_NEW_ARCH_ENABLED=1
           pod install --repo-update
 
+      - name: Patch fmt library for Xcode consteval issue
+        run: |
+          python3 -c "
+          import os
+          fmt_dir = 'ios/Pods/fmt'
+          if os.path.exists(fmt_dir):
+              for root, _, files in os.walk(fmt_dir):
+                  for file in files:
+                      if file.endswith('.h'):
+                          path = os.path.join(root, file)
+                          with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+                              content = f.read()
+                          if 'FMT_USE_CONSTEVAL' in content:
+                              patched = content.replace('FMT_USE_CONSTEVAL 1', 'FMT_USE_CONSTEVAL 0')
+                              with open(path, 'w', encoding='utf-8') as f:
+                                  f.write(patched)
+                              print(f'Patched: {path}')
+          "
+
       - name: Bundle JS (Hermes production)
         run: |
           npx expo export:embed \

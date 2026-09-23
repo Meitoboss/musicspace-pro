@@ -1,9 +1,0 @@
-# Python / FastAPI
-__pycache__/
-*.py[cod]
-.env
-venv/
-
-# OS作成ファイル
-.DS_Store
-Thumbs.db

@@ -1,0 +1,222 @@
+{
+    "id": 1,
+    "recordType": "Album",
+    "name": "ENZAN JUNGLE",
+    "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb",
+    "artists": [{
+        "id": 1,
+        "name": "microM",
+        "description": "",
+        "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb"
+    }],
+    "releaseDate": "2020",
+    "category": "POP",
+    "audios": [
+        {
+            "id": 1,
+            "name": "Rainbow",
+            "time": "00:02:37",
+            "artists": [{
+                "id": 1,
+                "name": "microM",
+                "description": "",
+                "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb"
+            }],
+            "lyrists": [{
+                "id": 1,
+                "name": "microM",
+                "description": "",
+                "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb"
+            }],
+            "composers": [{
+                "id": 1,
+                "name": "microM",
+                "description": "",
+                "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb"
+            }],
+            "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb",
+            "isFavorite": false,
+            "sortNumber": 1,
+            "url": "https://firebasestorage.googleapis.com/v0/b/mind-productbank.appspot.com/o/y2mate.com%20-%20microM%20%20%E4%BF%BA%E3%82%89%E3%81%AECLASSIC%20FtRENZANNASUKA%20Official%20Music%20Video.mp3?alt=media&token=36aeeeb0-eb7b-40ad-ac62-df5bc0b9c9ce"
+        },
+        {
+            "id": 2,
+            "name": "Nasty",
+            "time": "00:01:57",
+            "artists": [{
+                "id": 1,
+                "name": "microM",
+                "description": "",
+                "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb"
+            }],
+            "lyrists": [],
+            "composers": [],
+            "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb",
+            "isFavorite": false,
+            "sortNumber": 2,
+            "url": "https://firebasestorage.googleapis.com/v0/b/mind-productbank.appspot.com/o/y2mate.com%20-%20microM%20%20%E4%BF%BA%E3%82%89%E3%81%AECLASSIC%20FtRENZANNASUKA%20Official%20Music%20Video.mp3?alt=media&token=36aeeeb0-eb7b-40ad-ac62-df5bc0b9c9ce"
+        },
+        {
+            "id": 3,
+            "name": "Remember",
+            "time": "00:02:17",
+            "artists": [{
+                "id": 1,
+                "name": "microM",
+                "description": "",
+                "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb"
+            }],
+            "lyrists": [{
+                "id": 1,
+                "name": "microM",
+                "description": "",
+                "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb"
+            }],
+            "composers": [{
+                "id": 1,
+                "name": "microM",
+                "description": "",
+                "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb"
+            }],
+            "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb",
+            "isFavorite": false,
+            "sortNumber": 3,
+            "url": "https://firebasestorage.googleapis.com/v0/b/mind-productbank.appspot.com/o/y2mate.com%20-%20microM%20%20%E4%BF%BA%E3%82%89%E3%81%AECLASSIC%20FtRENZANNASUKA%20Official%20Music%20Video.mp3?alt=media&token=36aeeeb0-eb7b-40ad-ac62-df5bc0b9c9ce"
+        },
+        {
+            "id": 4,
+            "name": "Juicy Moonlight",
+            "time": "00:02:52",
+            "artists": [{
+                "id": 1,
+                "name": "microM",
+                "description": "",
+                "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb"
+            }],
+            "lyrists": [{
+                "id": 1,
+                "name": "microM",
+                "description": "",
+                "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb"
+            }],
+            "composers": [{
+                "id": 1,
+                "name": "microM",
+                "description": "",
+                "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb"
+            }],
+            "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb",
+            "isFavorite": false,
+            "sortNumber": 4,
+            "url": "https://firebasestorage.googleapis.com/v0/b/mind-productbank.appspot.com/o/y2mate.com%20-%20microM%20%20%E4%BF%BA%E3%82%89%E3%81%AECLASSIC%20FtRENZANNASUKA%20Official%20Music%20Video.mp3?alt=media&token=36aeeeb0-eb7b-40ad-ac62-df5bc0b9c9ce"
+        },
+        {
+            "id": 5,
+            "name": "Beat Friend",
+            "time": "00:02:51",
+            "artists": [{
+                "id": 1,
+                "name": "microM",
+                "description": "",
+                "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb"
+                },
+                {
+                    "id": 2,
+                    "name": "KOTA",
+                    "description": "",
+                    "posterUrl": ""
+                },
+                {
+                    "id": 3,
+                    "name": "NASUKA",
+                    "description": "",
+                    "posterUrl": ""
+                }
+            ],
+            "lyrists": [{
+                "id": 1,
+                "name": "microM",
+                "description": "",
+                "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb"
+            }],
+            "composers": [{
+                "id": 1,
+                "name": "microM",
+                "description": "",
+                "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb"
+            }],
+            "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb",
+            "isFavorite": false,
+            "sortNumber": 5,
+            "url": "https://firebasestorage.googleapis.com/v0/b/mind-productbank.appspot.com/o/y2mate.com%20-%20microM%20%20%E4%BF%BA%E3%82%89%E3%81%AECLASSIC%20FtRENZANNASUKA%20Official%20Music%20Video.mp3?alt=media&token=36aeeeb0-eb7b-40ad-ac62-df5bc0b9c9ce"
+        },
+        {
+            "id": 6,
+            "name": "Kiro",
+            "time": "00:02:28",
+            "artists": [{
+                "id": 1,
+                "name": "microM",
+                "description": "",
+                "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb"
+                },
+                {
+                    "id": 3,
+                    "name": "NASUKA",
+                    "description": "",
+                    "posterUrl": ""
+                },
+                {
+                    "id": 4,
+                    "name": "RENZAN",
+                    "description": "",
+                    "posterUrl": ""
+                },
+            ],
+            "lyrists": [{
+                "id": 1,
+                "name": "microM",
+                "description": "",
+                "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb"
+            }],
+            "composers": [{
+                "id": 1,
+                "name": "microM",
+                "description": "",
+                "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb"
+            }],
+            "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb",
+            "isFavorite": false,
+            "sortNumber": 6,
+            "url": "https://firebasestorage.googleapis.com/v0/b/mind-productbank.appspot.com/o/y2mate.com%20-%20microM%20%20%E4%BF%BA%E3%82%89%E3%81%AECLASSIC%20FtRENZANNASUKA%20Official%20Music%20Video.mp3?alt=media&token=36aeeeb0-eb7b-40ad-ac62-df5bc0b9c9ce"
+        },
+        {
+            "id": 7,
+            "name": "Before Night",
+            "time": "00:03:37",
+            "artists": [{
+                "id": 1,
+                "name": "microM",
+                "description": "",
+                "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb"
+            }],
+            "lyrists": [{
+                "id": 1,
+                "name": "microM",
+                "description": "",
+                "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb"
+            }],
+            "composers": [{
+                "id": 1,
+                "name": "microM",
+                "description": "",
+                "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb"
+            }],
+            "posterUrl": "https://firebasestorage.googleapis.com/v0/b/image-89fb3.appspot.com/o/RHYME%20DRINK.jpg?alt=media&token=a16966df-8bfd-4dbe-8f12-4ec52a4ca1cb",
+            "isFavorite": false,
+            "sortNumber": 7,
+            "url": "https://firebasestorage.googleapis.com/v0/b/mind-productbank.appspot.com/o/y2mate.com%20-%20microM%20%20%E4%BF%BA%E3%82%89%E3%81%AECLASSIC%20FtRENZANNASUKA%20Official%20Music%20Video.mp3?alt=media&token=36aeeeb0-eb7b-40ad-ac62-df5bc0b9c9ce"
+        },
+    ]
+}
+

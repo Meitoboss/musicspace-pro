@@ -1,5 +1,6 @@
 import Foundation
 import AVAudioSession
+import AVFoundation
 import MediaPlayer
 
 class AudioSessionManager {

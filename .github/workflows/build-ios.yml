@@ -70,21 +70,26 @@ jobs:
 
       - name: Patch fmt library for Xcode consteval issue
         run: |
+          chmod -R +w ios/Pods/fmt || true
           python3 -c "
-          import os
+          import os, stat
           fmt_dir = 'ios/Pods/fmt'
           if os.path.exists(fmt_dir):
               for root, _, files in os.walk(fmt_dir):
                   for file in files:
                       if file.endswith('.h'):
                           path = os.path.join(root, file)
-                          with open(path, 'r', encoding='utf-8', errors='ignore') as f:
-                              content = f.read()
-                          if 'FMT_USE_CONSTEVAL' in content:
-                              patched = content.replace('FMT_USE_CONSTEVAL 1', 'FMT_USE_CONSTEVAL 0')
-                              with open(path, 'w', encoding='utf-8') as f:
-                                  f.write(patched)
-                              print(f'Patched: {path}')
+                          try:
+                              os.chmod(path, stat.S_IWRITE | stat.S_IREAD)
+                              with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+                                  content = f.read()
+                              if 'FMT_USE_CONSTEVAL' in content:
+                                  patched = content.replace('FMT_USE_CONSTEVAL 1', 'FMT_USE_CONSTEVAL 0')
+                                  with open(path, 'w', encoding='utf-8') as f:
+                                      f.write(patched)
+                                  print(f'Patched: {path}')
+                          except Exception as e:
+                              print(f'Failed {path}: {e}')
           "
 
       - name: Bundle JS (Hermes production)

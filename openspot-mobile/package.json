@@ -47,6 +47,7 @@
     "expo-system-ui": "~5.0.10",
     "expo-web-browser": "~14.2.0",
     "i18next": "^26.0.8",
+    "query-string": "^9.5.1",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-i18next": "^17.0.6",
